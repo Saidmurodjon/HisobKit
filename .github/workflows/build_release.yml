@@ -1,0 +1,109 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  # ─── Android APK ─────────────────────────────────────────────────────────────
+  android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code (build_runner)
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Build APK (release)
+        run: flutter build apk --release --no-shrink
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HisobKit-android
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Create GitHub Release & attach APK
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/app/outputs/flutter-apk/app-release.apk
+          name: "HisobKit ${{ github.ref_name }}"
+          body: |
+            ## HisobKit ${{ github.ref_name }}
+
+            ### Android
+            📱 **app-release.apk** faylini yuklab, telefoningizga o'rnating.
+            > Sozlamalar → Xavfsizlik → Noma'lum manbalar → Ruxsat bering
+
+            ### iOS
+            🍎 iOS uchun App Store orqali yoki TestFlight kerak bo'ladi.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ─── iOS IPA ─────────────────────────────────────────────────────────────────
+  ios:
+    name: Build iOS IPA
+    runs-on: macos-latest
+    if: startsWith(github.ref, 'refs/tags/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.41.9'
+          channel: 'stable'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code (build_runner)
+        run: flutter pub run build_runner build --delete-conflicting-outputs
+
+      - name: Build iOS (no codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Package IPA
+        run: |
+          mkdir -p Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r HisobKit.ipa Payload/
+          rm -rf Payload
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HisobKit-ios
+          path: HisobKit.ipa
+
+      - name: Attach IPA to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: HisobKit.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

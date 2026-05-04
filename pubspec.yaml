@@ -1,0 +1,69 @@
+name: hisobkit
+description: HisobKit — Personal Finance Tracker. 100% offline, encrypted, privacy-first.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Database
+  drift: ^2.21.0
+  sqlite3: ^2.7.4
+  sqlcipher_flutter_libs: ^0.5.4
+  path_provider: ^2.1.5
+  path: ^1.9.1
+
+  # Navigation
+  go_router: ^14.6.3
+
+  # Charts
+  fl_chart: ^0.70.2
+
+  # Biometrics
+  local_auth: ^2.3.0
+
+  # Secure storage
+  flutter_secure_storage: ^9.2.4
+
+  # Export
+  pdf: ^3.11.3
+  excel: ^4.0.6
+  share_plus: ^10.1.4
+  file_picker: ^8.3.7
+
+  # Date & formatting
+  intl: ^0.20.2
+
+  # Security
+  crypto: ^3.0.6
+
+  # UI utilities
+  flutter_colorpicker: ^1.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  drift_dev: ^2.21.0
+  build_runner: ^2.4.13
+  riverpod_generator: ^2.6.1
+  custom_lint: ^0.7.0
+  riverpod_lint: ^2.6.1
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/images/
+    - assets/icons/

@@ -1,0 +1,10 @@
+targets:
+  $default:
+    builders:
+      drift_dev:
+        options:
+          # Generate type-safe companions
+          generate_connect_constructor: false
+          # Use the newer style
+          apply_converters_on_variables: true
+          named_parameters: true

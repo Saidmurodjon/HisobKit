@@ -13,14 +13,12 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Force all subprojects (including plugins) to use compileSdk 34
-// This fixes android:attr/lStar error from sqlcipher_flutter_libs
+// Force compileSdk 34 for all Android library subprojects (plugins)
+// Fixes android:attr/lStar not found from sqlcipher_flutter_libs
 subprojects {
-    afterEvaluate { proj ->
-        if (proj.hasProperty('android')) {
-            proj.android {
-                compileSdkVersion 34
-            }
+    project.plugins.withId("com.android.library") {
+        project.android {
+            compileSdkVersion 34
         }
     }
 }

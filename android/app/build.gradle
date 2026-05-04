@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace "com.example.hisobkit"
-    compileSdk flutter.compileSdkVersion
+    compileSdk 34
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -21,8 +21,8 @@ android {
     defaultConfig {
         applicationId "com.example.hisobkit"
         // Biometrics require API 23+
-        minSdkVersion flutter.minSdkVersion
-        targetSdk flutter.targetSdkVersion
+        minSdkVersion 23
+        targetSdk 34
         versionCode flutter.versionCode
         versionName flutter.versionName
         multiDexEnabled true

@@ -56,21 +56,21 @@ class AppTheme {
         error: danger,
         onError: Colors.white,
         surface: surface,
-        onSurface: primary,
-        surfaceContainerHighest: const Color(0xFFEEF0F3),
-        onSurfaceVariant: const Color(0xFF6B7280),
+        onSurface: const Color(0xFF0D1B2A),   // near-black — max readability
+        surfaceContainerHighest: const Color(0xFFE5E8ED),
+        onSurfaceVariant: const Color(0xFF4B5563), // darker grey — WCAG AA
       ),
       scaffoldBackgroundColor: surface,
       textTheme: GoogleFonts.interTextTheme(base.textTheme).copyWith(
-        displayLarge: GoogleFonts.sora(fontSize: 36, fontWeight: FontWeight.w700),
-        headlineMedium: GoogleFonts.sora(fontSize: 24, fontWeight: FontWeight.w600),
-        headlineSmall: GoogleFonts.sora(fontSize: 20, fontWeight: FontWeight.w600),
-        titleLarge: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w600),
-        titleMedium: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600),
-        bodyLarge: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400),
-        bodyMedium: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w400),
-        bodySmall: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.3),
-        labelSmall: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w400),
+        displayLarge: GoogleFonts.sora(fontSize: 36, fontWeight: FontWeight.w700, color: const Color(0xFF0D1B2A)),
+        headlineMedium: GoogleFonts.sora(fontSize: 24, fontWeight: FontWeight.w600, color: const Color(0xFF0D1B2A)),
+        headlineSmall: GoogleFonts.sora(fontSize: 20, fontWeight: FontWeight.w600, color: const Color(0xFF0D1B2A)),
+        titleLarge: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w600, color: const Color(0xFF0D1B2A)),
+        titleMedium: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: const Color(0xFF0D1B2A)),
+        bodyLarge: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w400, color: const Color(0xFF1F2937)),
+        bodyMedium: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w400, color: const Color(0xFF374151)),
+        bodySmall: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w400, letterSpacing: 0.3, color: const Color(0xFF4B5563)),
+        labelSmall: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w400, color: const Color(0xFF6B7280)),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: surface,
@@ -86,28 +86,29 @@ class AppTheme {
         color: cardBg,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: const BorderSide(color: Color(0x0F000000), width: 1),
+          side: const BorderSide(color: Color(0x1A000000), width: 1), // more visible border
         ),
         margin: EdgeInsets.zero,
-        shadowColor: const Color(0x0F000000),
+        shadowColor: const Color(0x14000000),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: const Color(0xFFF0F2F5),
+        fillColor: const Color(0xFFE8EBF0),   // darker fill → label always visible
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.transparent, width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFFD1D5DB), width: 1),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: Colors.transparent, width: 1.5),
+          borderSide: const BorderSide(color: Color(0xFFD1D5DB), width: 1),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: accent, width: 1.5),
+          borderSide: const BorderSide(color: accent, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        labelStyle: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF6B7280)),
+        labelStyle: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF4B5563)),
+        hintStyle: GoogleFonts.inter(fontSize: 14, color: const Color(0xFF9CA3AF)),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(

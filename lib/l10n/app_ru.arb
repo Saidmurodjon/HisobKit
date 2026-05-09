@@ -255,5 +255,14 @@
   "netPosition": "Чистая позиция",
   "shareViaQr": "Поделиться через QR",
   "urgent": "Срочно",
-  "normalPriority": "Обычный"
+  "normalPriority": "Обычный",
+  "checkForUpdates": "Проверить обновления",
+  "newVersionAvailable": "Доступна новая версия",
+  "currentVersionLabel": "Текущая версия",
+  "latestVersionLabel": "Последняя версия",
+  "updateNow": "Обновить",
+  "alreadyUpToDate": "Приложение обновлено",
+  "updateCheckFailed": "Ошибка проверки",
+  "checking": "Проверка...",
+  "releaseNotes": "Что нового"
 }

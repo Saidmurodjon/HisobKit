@@ -255,5 +255,14 @@
   "netPosition": "Sof pozitsiya",
   "shareViaQr": "QR orqali ulashish",
   "urgent": "Shoshilinch",
-  "normalPriority": "Oddiy"
+  "normalPriority": "Oddiy",
+  "checkForUpdates": "Yangilanishni tekshirish",
+  "newVersionAvailable": "Yangi versiya mavjud",
+  "currentVersionLabel": "Joriy versiya",
+  "latestVersionLabel": "So'nggi versiya",
+  "updateNow": "Yangilash",
+  "alreadyUpToDate": "Dastur eng so'nggi versiyada",
+  "updateCheckFailed": "Tekshirish muvaffaqiyatsiz",
+  "checking": "Tekshirilmoqda...",
+  "releaseNotes": "Yangiliklar"
 }

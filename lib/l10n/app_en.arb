@@ -257,5 +257,14 @@
   "netPosition": "Net position",
   "shareViaQr": "Share via QR",
   "urgent": "Urgent",
-  "normalPriority": "Normal"
+  "normalPriority": "Normal",
+  "checkForUpdates": "Check for Updates",
+  "newVersionAvailable": "New Version Available",
+  "currentVersionLabel": "Current Version",
+  "latestVersionLabel": "Latest Version",
+  "updateNow": "Update Now",
+  "alreadyUpToDate": "App is up to date",
+  "updateCheckFailed": "Check failed",
+  "checking": "Checking...",
+  "releaseNotes": "What's New"
 }

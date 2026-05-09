@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import '../l10n/app_localizations.dart';
 
 import '../../features/auth/lock_screen.dart';
 import '../../features/auth/onboarding_screen.dart';
@@ -236,6 +237,7 @@ class _MainShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final idx = _currentIndex(context);
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       body: child,
@@ -243,56 +245,44 @@ class _MainShell extends StatelessWidget {
         selectedIndex: idx,
         onDestinationSelected: (i) {
           switch (i) {
-            case 0:
-              context.go('/');
-              break;
-            case 1:
-              context.go('/transactions');
-              break;
-            case 2:
-              context.go('/reports');
-              break;
-            case 3:
-              context.go('/debts');
-              break;
-            case 4:
-              context.go('/house');
-              break;
-            case 5:
-              context.go('/settings');
-              break;
+            case 0: context.go('/'); break;
+            case 1: context.go('/transactions'); break;
+            case 2: context.go('/reports'); break;
+            case 3: context.go('/debts'); break;
+            case 4: context.go('/house'); break;
+            case 5: context.go('/settings'); break;
           }
         },
-        destinations: const [
+        destinations: [
           NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home),
-            label: 'Home',
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: l10n.home,
           ),
           NavigationDestination(
-            icon: Icon(Icons.receipt_long_outlined),
-            selectedIcon: Icon(Icons.receipt_long),
-            label: 'Transactions',
+            icon: const Icon(Icons.receipt_long_outlined),
+            selectedIcon: const Icon(Icons.receipt_long),
+            label: l10n.transactions,
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'Reports',
+            icon: const Icon(Icons.bar_chart_outlined),
+            selectedIcon: const Icon(Icons.bar_chart),
+            label: l10n.reports,
           ),
           NavigationDestination(
-            icon: Icon(Icons.handshake_outlined),
-            selectedIcon: Icon(Icons.handshake),
-            label: 'Debts',
+            icon: const Icon(Icons.handshake_outlined),
+            selectedIcon: const Icon(Icons.handshake),
+            label: l10n.debts,
           ),
           NavigationDestination(
-            icon: Icon(Icons.home_work_outlined),
-            selectedIcon: Icon(Icons.home_work),
-            label: 'House',
+            icon: const Icon(Icons.home_work_outlined),
+            selectedIcon: const Icon(Icons.home_work),
+            label: l10n.houseTab,
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
-            label: 'Settings',
+            icon: const Icon(Icons.settings_outlined),
+            selectedIcon: const Icon(Icons.settings),
+            label: l10n.settings,
           ),
         ],
       ),

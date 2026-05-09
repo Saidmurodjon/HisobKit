@@ -2,11 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../core/services/update_checker.dart';
 import '../../core/database/app_database.dart';
 import '../../core/database/database_provider.dart';
 import '../../core/l10n/app_localizations.dart';
@@ -166,13 +169,15 @@ class SettingsScreen extends ConsumerWidget {
                     color: AppTheme.accent.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Text('1.1.0',
+                  child: Text(UpdateChecker.currentVersion,
                       style: GoogleFonts.inter(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
                           color: AppTheme.accent)),
                 ),
               ),
+              _divider(),
+              _UpdateCheckerTile(),
             ]),
             const SizedBox(height: 20),
 
@@ -952,6 +957,218 @@ class _ExchangeRatesSheetState extends ConsumerState<_ExchangeRatesSheet> {
             ),
             child: Text(l10n.save),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Update Checker Tile ───────────────────────────────────────────────────────
+class _UpdateCheckerTile extends StatefulWidget {
+  @override
+  State<_UpdateCheckerTile> createState() => _UpdateCheckerTileState();
+}
+
+class _UpdateCheckerTileState extends State<_UpdateCheckerTile> {
+  bool _checking = false;
+
+  Future<void> _check() async {
+    if (_checking) return;
+    setState(() => _checking = true);
+
+    final l10n = AppLocalizations.of(context)!;
+
+    try {
+      final info = await UpdateChecker.checkForUpdate();
+
+      if (!mounted) return;
+
+      if (info == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.updateCheckFailed)),
+        );
+        return;
+      }
+
+      if (!info.isNewer) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.alreadyUpToDate),
+            backgroundColor: AppTheme.accent,
+          ),
+        );
+        return;
+      }
+
+      // Show update dialog
+      await showDialog(
+        context: context,
+        builder: (ctx) => _UpdateDialog(info: info),
+      );
+    } finally {
+      if (mounted) setState(() => _checking = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return ListTile(
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      leading: _iconBox(Icons.system_update_outlined),
+      title: Text(
+        _checking ? l10n.checking : l10n.checkForUpdates,
+        style: GoogleFonts.inter(fontSize: 15),
+      ),
+      trailing: _checking
+          ? const SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : const Icon(Icons.chevron_right, size: 18, color: Colors.grey),
+      onTap: _check,
+    );
+  }
+}
+
+class _UpdateDialog extends StatelessWidget {
+  final ReleaseInfo info;
+  const _UpdateDialog({required this.info});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final notes = info.body.length > 400
+        ? '${info.body.substring(0, 400)}…'
+        : info.body;
+
+    return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      contentPadding: EdgeInsets.zero,
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppTheme.primary, Color(0xFF163A5E)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.new_releases,
+                        color: AppTheme.accent, size: 22),
+                    const SizedBox(width: 8),
+                    Text(
+                      l10n.newVersionAvailable,
+                      style: GoogleFonts.sora(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    _versionChip(l10n.currentVersionLabel,
+                        UpdateChecker.currentVersion, Colors.white24),
+                    const SizedBox(width: 8),
+                    const Icon(Icons.arrow_forward,
+                        size: 16, color: Colors.white54),
+                    const SizedBox(width: 8),
+                    _versionChip(
+                        l10n.latestVersionLabel, info.version, AppTheme.accent),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          // Body
+          if (notes.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.releaseNotes,
+                      style: GoogleFonts.sora(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary)),
+                  const SizedBox(height: 8),
+                  Text(
+                    notes,
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: Colors.grey.shade700),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Keyinroq'),
+        ),
+        FilledButton.icon(
+          icon: const Icon(Icons.download, size: 18),
+          label: Text(l10n.updateNow),
+          onPressed: () async {
+            Navigator.pop(context);
+            final uri = Uri.parse(info.downloadUrl);
+            if (await canLaunchUrl(uri)) {
+              await launchUrl(uri, mode: LaunchMode.externalApplication);
+            } else {
+              // Fallback: copy URL to clipboard
+              await Clipboard.setData(ClipboardData(text: info.releaseUrl));
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text('Havola nusxalandi — brauzerni oching')),
+                );
+              }
+            }
+          },
+          style: FilledButton.styleFrom(
+            backgroundColor: AppTheme.accent,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _versionChip(String label, String version, Color bg) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label,
+              style: GoogleFonts.inter(fontSize: 9, color: Colors.white70)),
+          Text(version,
+              style: GoogleFonts.sora(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white)),
         ],
       ),
     );

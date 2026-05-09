@@ -50,6 +50,10 @@ dependencies:
   # UI utilities
   flutter_colorpicker: ^1.1.0
 
+  # Network & launcher
+  http: ^1.2.0
+  url_launcher: ^6.3.0
+
   # New design & features
   google_fonts: ^6.2.1
   flutter_animate: ^4.5.2

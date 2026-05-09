@@ -736,4 +736,121 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get normalPriority => 'Oddiy';
+
+  @override
+  String get checkForUpdates => 'Yangilanishni tekshirish';
+
+  @override
+  String get newVersionAvailable => 'Yangi versiya mavjud';
+
+  @override
+  String get currentVersionLabel => 'Joriy versiya';
+
+  @override
+  String get latestVersionLabel => 'So\'nggi versiya';
+
+  @override
+  String get updateNow => 'Yangilash';
+
+  @override
+  String get alreadyUpToDate => 'Dastur eng so\'nggi versiyada';
+
+  @override
+  String get updateCheckFailed => 'Tekshirish muvaffaqiyatsiz';
+
+  @override
+  String get checking => 'Tekshirilmoqda...';
+
+  @override
+  String get releaseNotes => 'Yangiliklar';
+
+  @override
+  String get trustContacts => 'Ishonchli kontaktlar';
+
+  @override
+  String get addContact => 'Kontakt qo\'shish';
+
+  @override
+  String get scanQR => 'QR skanerlash';
+
+  @override
+  String get showQR => 'QR ko\'rsatish';
+
+  @override
+  String get incomingRequests => 'Kelgan so\'rovlar';
+
+  @override
+  String get verifyDebt => 'Qarzni tekshirish';
+
+  @override
+  String get contentHash => 'Kontent hash';
+
+  @override
+  String get signatureValid => 'Imzo to\'g\'ri';
+
+  @override
+  String get signatureInvalid => 'Imzo noto\'g\'ri';
+
+  @override
+  String get confirmDebt => 'Tasdiqlash';
+
+  @override
+  String get rejectDebtAction => 'Rad etish';
+
+  @override
+  String get rejectionReason => 'Rad etish sababi';
+
+  @override
+  String get auditLog => 'Tarix jurnali';
+
+  @override
+  String get syncMethod => 'Yuborish usuli';
+
+  @override
+  String get sendViaFile => 'Fayl orqali';
+
+  @override
+  String get sendViaPocketBase => 'Server sozlanmagan';
+
+  @override
+  String get debtPending => 'Kutilmoqda';
+
+  @override
+  String get debtConfirmed => 'Tasdiqlangan';
+
+  @override
+  String get debtRejected => 'Rad etildi';
+
+  @override
+  String get debtExpired => 'Muddati o\'tdi';
+
+  @override
+  String get debtSettled => 'To\'landi';
+
+  @override
+  String get tampered => 'Ma\'lumot o\'zgartirilgan!';
+
+  @override
+  String get signAndSend => 'Imzolash va yuborish';
+
+  @override
+  String get verifySignatures => 'Imzolarni tekshir';
+
+  @override
+  String get bothPartiesConfirmed => 'Ikki tomon tasdiqladi';
+
+  @override
+  String get lenderSignature => 'Beruvchi imzosi';
+
+  @override
+  String get borrowerSignature => 'Oluvchi imzosi';
+
+  @override
+  String get noIncomingRequests => 'Kelgan so\'rovlar yo\'q';
+
+  @override
+  String get myPublicKey => 'Mening public keyim';
+
+  @override
+  String get copyKey => 'Kalitni nusxalash';
 }

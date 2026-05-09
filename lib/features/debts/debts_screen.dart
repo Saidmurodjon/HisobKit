@@ -11,6 +11,7 @@ import '../../core/theme/app_theme.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../../core/utils/date_formatter.dart';
 import 'debt_providers.dart';
+import 'trust/trust_providers.dart';
 
 class DebtsScreen extends ConsumerWidget {
   const DebtsScreen({super.key});
@@ -22,7 +23,28 @@ class DebtsScreen extends ConsumerWidget {
     final summaryAsync = ref.watch(debtSummaryProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.debts)),
+      appBar: AppBar(
+        title: Text(l10n.debts),
+        actions: [
+          Consumer(builder: (ctx, ref, _) {
+            final pending = ref.watch(pendingDebtsProvider);
+            final count = pending.value?.length ?? 0;
+            return Badge(
+              isLabelVisible: count > 0,
+              label: Text('$count'),
+              child: IconButton(
+                icon: const Icon(Icons.inbox_outlined),
+                onPressed: () => context.push('/debts/incoming'),
+              ),
+            );
+          }),
+          IconButton(
+            icon: const Icon(Icons.person_add_outlined),
+            tooltip: l10n.addContact,
+            onPressed: () => context.push('/debts/contacts/add'),
+          ),
+        ],
+      ),
       body: Column(
         children: [
           // Summary header
@@ -301,10 +323,51 @@ class _DebtCard extends ConsumerWidget {
                   loading: () => const SizedBox.shrink(),
                   error: (_, __) => const SizedBox.shrink(),
                 ),
+              if (debt.status != 'draft') ...[
+                const SizedBox(height: 8),
+                _StatusBadge(status: debt.status),
+                TextButton(
+                  onPressed: () => context.push('/debts/${debt.id}/verify'),
+                  child: Text(AppLocalizations.of(context)!.verifyDebt),
+                ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+// ── Status Badge ─────────────────────────────────────────────────────────────
+class _StatusBadge extends StatelessWidget {
+  final String status;
+  const _StatusBadge({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final (label, color) = switch (status) {
+      'pending' => (l10n.debtPending, Colors.orange),
+      'confirmed' => (l10n.debtConfirmed, AppTheme.incomeColor),
+      'rejected' => (l10n.debtRejected, AppTheme.expenseColor),
+      'expired' => (l10n.debtExpired, Colors.grey),
+      'settled' => (l10n.debtSettled, AppTheme.accent),
+      _ => ('', Colors.transparent),
+    };
+    if (label.isEmpty) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Text(label,
+          style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.w600)),
     );
   }
 }

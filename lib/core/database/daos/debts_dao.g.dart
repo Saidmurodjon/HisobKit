@@ -6,4 +6,8 @@ part of 'debts_dao.dart';
 mixin _$DebtsDaoMixin on DatabaseAccessor<AppDatabase> {
   $DebtsTable get debts => attachedDatabase.debts;
   $DebtPaymentsTable get debtPayments => attachedDatabase.debtPayments;
+  $DebtSignaturesTable get debtSignatures => attachedDatabase.debtSignatures;
+  $DebtEventsTable get debtEvents => attachedDatabase.debtEvents;
+  $KnownContactsTable get knownContacts => attachedDatabase.knownContacts;
+  $SyncQueueTable get syncQueue => attachedDatabase.syncQueue;
 }

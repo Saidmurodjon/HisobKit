@@ -1545,6 +1545,240 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Normal'**
   String get normalPriority;
+
+  /// No description provided for @checkForUpdates.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for Updates'**
+  String get checkForUpdates;
+
+  /// No description provided for @newVersionAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'New Version Available'**
+  String get newVersionAvailable;
+
+  /// No description provided for @currentVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current Version'**
+  String get currentVersionLabel;
+
+  /// No description provided for @latestVersionLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Latest Version'**
+  String get latestVersionLabel;
+
+  /// No description provided for @updateNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Update Now'**
+  String get updateNow;
+
+  /// No description provided for @alreadyUpToDate.
+  ///
+  /// In en, this message translates to:
+  /// **'App is up to date'**
+  String get alreadyUpToDate;
+
+  /// No description provided for @updateCheckFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Check failed'**
+  String get updateCheckFailed;
+
+  /// No description provided for @checking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking...'**
+  String get checking;
+
+  /// No description provided for @releaseNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'What\'s New'**
+  String get releaseNotes;
+
+  /// No description provided for @trustContacts.
+  ///
+  /// In en, this message translates to:
+  /// **'Trusted Contacts'**
+  String get trustContacts;
+
+  /// No description provided for @addContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Contact'**
+  String get addContact;
+
+  /// No description provided for @scanQR.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR'**
+  String get scanQR;
+
+  /// No description provided for @showQR.
+  ///
+  /// In en, this message translates to:
+  /// **'Show QR'**
+  String get showQR;
+
+  /// No description provided for @incomingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'Incoming Requests'**
+  String get incomingRequests;
+
+  /// No description provided for @verifyDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Debt'**
+  String get verifyDebt;
+
+  /// No description provided for @contentHash.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Hash'**
+  String get contentHash;
+
+  /// No description provided for @signatureValid.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature valid'**
+  String get signatureValid;
+
+  /// No description provided for @signatureInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Signature invalid'**
+  String get signatureInvalid;
+
+  /// No description provided for @confirmDebt.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm'**
+  String get confirmDebt;
+
+  /// No description provided for @rejectDebtAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Reject'**
+  String get rejectDebtAction;
+
+  /// No description provided for @rejectionReason.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejection reason'**
+  String get rejectionReason;
+
+  /// No description provided for @auditLog.
+  ///
+  /// In en, this message translates to:
+  /// **'Audit Log'**
+  String get auditLog;
+
+  /// No description provided for @syncMethod.
+  ///
+  /// In en, this message translates to:
+  /// **'Send method'**
+  String get syncMethod;
+
+  /// No description provided for @sendViaFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Via File'**
+  String get sendViaFile;
+
+  /// No description provided for @sendViaPocketBase.
+  ///
+  /// In en, this message translates to:
+  /// **'Server not configured'**
+  String get sendViaPocketBase;
+
+  /// No description provided for @debtPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get debtPending;
+
+  /// No description provided for @debtConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirmed'**
+  String get debtConfirmed;
+
+  /// No description provided for @debtRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected'**
+  String get debtRejected;
+
+  /// No description provided for @debtExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get debtExpired;
+
+  /// No description provided for @debtSettled.
+  ///
+  /// In en, this message translates to:
+  /// **'Settled'**
+  String get debtSettled;
+
+  /// No description provided for @tampered.
+  ///
+  /// In en, this message translates to:
+  /// **'Data has been tampered!'**
+  String get tampered;
+
+  /// No description provided for @signAndSend.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign and Send'**
+  String get signAndSend;
+
+  /// No description provided for @verifySignatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify Signatures'**
+  String get verifySignatures;
+
+  /// No description provided for @bothPartiesConfirmed.
+  ///
+  /// In en, this message translates to:
+  /// **'Both parties confirmed'**
+  String get bothPartiesConfirmed;
+
+  /// No description provided for @lenderSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'Lender signature'**
+  String get lenderSignature;
+
+  /// No description provided for @borrowerSignature.
+  ///
+  /// In en, this message translates to:
+  /// **'Borrower signature'**
+  String get borrowerSignature;
+
+  /// No description provided for @noIncomingRequests.
+  ///
+  /// In en, this message translates to:
+  /// **'No incoming requests'**
+  String get noIncomingRequests;
+
+  /// No description provided for @myPublicKey.
+  ///
+  /// In en, this message translates to:
+  /// **'My public key'**
+  String get myPublicKey;
+
+  /// No description provided for @copyKey.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy key'**
+  String get copyKey;
 }
 
 class _AppLocalizationsDelegate

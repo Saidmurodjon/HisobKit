@@ -734,4 +734,121 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get normalPriority => 'Обычный';
+
+  @override
+  String get checkForUpdates => 'Проверить обновления';
+
+  @override
+  String get newVersionAvailable => 'Доступна новая версия';
+
+  @override
+  String get currentVersionLabel => 'Текущая версия';
+
+  @override
+  String get latestVersionLabel => 'Последняя версия';
+
+  @override
+  String get updateNow => 'Обновить';
+
+  @override
+  String get alreadyUpToDate => 'Приложение обновлено';
+
+  @override
+  String get updateCheckFailed => 'Ошибка проверки';
+
+  @override
+  String get checking => 'Проверка...';
+
+  @override
+  String get releaseNotes => 'Что нового';
+
+  @override
+  String get trustContacts => 'Доверенные контакты';
+
+  @override
+  String get addContact => 'Добавить контакт';
+
+  @override
+  String get scanQR => 'Сканировать QR';
+
+  @override
+  String get showQR => 'Показать QR';
+
+  @override
+  String get incomingRequests => 'Входящие запросы';
+
+  @override
+  String get verifyDebt => 'Проверить долг';
+
+  @override
+  String get contentHash => 'Хэш содержимого';
+
+  @override
+  String get signatureValid => 'Подпись верна';
+
+  @override
+  String get signatureInvalid => 'Подпись недействительна';
+
+  @override
+  String get confirmDebt => 'Подтвердить';
+
+  @override
+  String get rejectDebtAction => 'Отклонить';
+
+  @override
+  String get rejectionReason => 'Причина отклонения';
+
+  @override
+  String get auditLog => 'Журнал событий';
+
+  @override
+  String get syncMethod => 'Способ отправки';
+
+  @override
+  String get sendViaFile => 'Через файл';
+
+  @override
+  String get sendViaPocketBase => 'Сервер не настроен';
+
+  @override
+  String get debtPending => 'Ожидает';
+
+  @override
+  String get debtConfirmed => 'Подтверждён';
+
+  @override
+  String get debtRejected => 'Отклонён';
+
+  @override
+  String get debtExpired => 'Истёк срок';
+
+  @override
+  String get debtSettled => 'Оплачен';
+
+  @override
+  String get tampered => 'Данные были изменены!';
+
+  @override
+  String get signAndSend => 'Подписать и отправить';
+
+  @override
+  String get verifySignatures => 'Проверить подписи';
+
+  @override
+  String get bothPartiesConfirmed => 'Обе стороны подтвердили';
+
+  @override
+  String get lenderSignature => 'Подпись кредитора';
+
+  @override
+  String get borrowerSignature => 'Подпись должника';
+
+  @override
+  String get noIncomingRequests => 'Нет входящих запросов';
+
+  @override
+  String get myPublicKey => 'Мой публичный ключ';
+
+  @override
+  String get copyKey => 'Скопировать ключ';
 }

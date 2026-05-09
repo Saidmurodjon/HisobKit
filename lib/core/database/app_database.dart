@@ -36,6 +36,10 @@ part 'app_database.g.dart';
     HouseExpenseSplits,
     HouseSettlements,
     ShoppingItems,
+    DebtSignatures,
+    DebtEvents,
+    KnownContacts,
+    SyncQueue,
   ],
   daos: [
     AccountsDao,
@@ -53,7 +57,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -70,6 +74,20 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(houseExpenseSplits);
             await m.createTable(houseSettlements);
             await m.createTable(shoppingItems);
+          }
+          if (from < 3) {
+            // Add new columns to debts
+            await m.addColumn(debts, debts.status);
+            await m.addColumn(debts, debts.contentHash);
+            await m.addColumn(debts, debts.lenderPublicKey);
+            await m.addColumn(debts, debts.borrowerPublicKey);
+            await m.addColumn(debts, debts.expiresAt);
+            await m.addColumn(debts, debts.rejectionReason);
+            // Create new tables
+            await m.createTable(debtSignatures);
+            await m.createTable(debtEvents);
+            await m.createTable(knownContacts);
+            await m.createTable(syncQueue);
           }
         },
       );

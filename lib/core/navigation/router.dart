@@ -14,6 +14,11 @@ import '../../features/budgets/budgets_screen.dart';
 import '../../features/reports/reports_screen.dart';
 import '../../features/debts/debts_screen.dart';
 import '../../features/debts/islamic_contract_screen.dart';
+import '../../features/debts/trust/add_contact_screen.dart';
+import '../../features/debts/trust/send_debt_screen.dart';
+import '../../features/debts/trust/incoming_requests_screen.dart';
+import '../../features/debts/trust/debt_verification_screen.dart';
+import '../../features/debts/trust/debt_audit_screen.dart';
 import '../database/app_database.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/export/export_screen.dart';
@@ -160,11 +165,41 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/budgets/add',
         builder: (ctx, _) => const BudgetsScreen(),
       ),
+      // Trust system routes — must be BEFORE /debts/:id to match correctly
+      GoRoute(
+        path: '/debts/contacts/add',
+        builder: (ctx, _) => const AddContactScreen(),
+      ),
+      GoRoute(
+        path: '/debts/incoming',
+        builder: (ctx, _) => const IncomingRequestsScreen(),
+      ),
       GoRoute(
         path: '/debts/:id',
         builder: (ctx, state) {
           final id = int.parse(state.pathParameters['id']!);
           return DebtDetailScreen(debtId: id);
+        },
+      ),
+      GoRoute(
+        path: '/debts/:id/send',
+        builder: (ctx, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return SendDebtScreen(debtId: id);
+        },
+      ),
+      GoRoute(
+        path: '/debts/:id/verify',
+        builder: (ctx, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return DebtVerificationScreen(debtId: id);
+        },
+      ),
+      GoRoute(
+        path: '/debts/:id/audit',
+        builder: (ctx, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return DebtAuditScreen(debtId: id);
         },
       ),
       GoRoute(

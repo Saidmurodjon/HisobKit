@@ -733,4 +733,121 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get normalPriority => 'Normal';
+
+  @override
+  String get checkForUpdates => 'Check for Updates';
+
+  @override
+  String get newVersionAvailable => 'New Version Available';
+
+  @override
+  String get currentVersionLabel => 'Current Version';
+
+  @override
+  String get latestVersionLabel => 'Latest Version';
+
+  @override
+  String get updateNow => 'Update Now';
+
+  @override
+  String get alreadyUpToDate => 'App is up to date';
+
+  @override
+  String get updateCheckFailed => 'Check failed';
+
+  @override
+  String get checking => 'Checking...';
+
+  @override
+  String get releaseNotes => 'What\'s New';
+
+  @override
+  String get trustContacts => 'Trusted Contacts';
+
+  @override
+  String get addContact => 'Add Contact';
+
+  @override
+  String get scanQR => 'Scan QR';
+
+  @override
+  String get showQR => 'Show QR';
+
+  @override
+  String get incomingRequests => 'Incoming Requests';
+
+  @override
+  String get verifyDebt => 'Verify Debt';
+
+  @override
+  String get contentHash => 'Content Hash';
+
+  @override
+  String get signatureValid => 'Signature valid';
+
+  @override
+  String get signatureInvalid => 'Signature invalid';
+
+  @override
+  String get confirmDebt => 'Confirm';
+
+  @override
+  String get rejectDebtAction => 'Reject';
+
+  @override
+  String get rejectionReason => 'Rejection reason';
+
+  @override
+  String get auditLog => 'Audit Log';
+
+  @override
+  String get syncMethod => 'Send method';
+
+  @override
+  String get sendViaFile => 'Via File';
+
+  @override
+  String get sendViaPocketBase => 'Server not configured';
+
+  @override
+  String get debtPending => 'Pending';
+
+  @override
+  String get debtConfirmed => 'Confirmed';
+
+  @override
+  String get debtRejected => 'Rejected';
+
+  @override
+  String get debtExpired => 'Expired';
+
+  @override
+  String get debtSettled => 'Settled';
+
+  @override
+  String get tampered => 'Data has been tampered!';
+
+  @override
+  String get signAndSend => 'Sign and Send';
+
+  @override
+  String get verifySignatures => 'Verify Signatures';
+
+  @override
+  String get bothPartiesConfirmed => 'Both parties confirmed';
+
+  @override
+  String get lenderSignature => 'Lender signature';
+
+  @override
+  String get borrowerSignature => 'Borrower signature';
+
+  @override
+  String get noIncomingRequests => 'No incoming requests';
+
+  @override
+  String get myPublicKey => 'My public key';
+
+  @override
+  String get copyKey => 'Copy key';
 }

@@ -64,6 +64,14 @@ class Debts extends Table {
   TextColumn get note => text().withDefault(const Constant(''))();
   BoolColumn get isPaid => boolean().withDefault(const Constant(false))();
   DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+
+  // Trust system columns
+  TextColumn get status => text().withDefault(const Constant('draft'))();
+  TextColumn get contentHash => text().nullable()();
+  TextColumn get lenderPublicKey => text().nullable()();
+  TextColumn get borrowerPublicKey => text().nullable()();
+  DateTimeColumn get expiresAt => dateTime().nullable()();
+  TextColumn get rejectionReason => text().nullable()();
 }
 
 // ── Debt Payments ─────────────────────────────────────────────────────────────
@@ -172,4 +180,46 @@ class ShoppingItems extends Table {
   BoolColumn get isBought => boolean().withDefault(const Constant(false))();
   BoolColumn get isUrgent => boolean().withDefault(const Constant(false))();
   DateTimeColumn get addedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ── Debt Signatures ───────────────────────────────────────────────────────────
+class DebtSignatures extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get debtId => integer().references(Debts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get role => text()();
+  TextColumn get signerPublicKey => text()();
+  TextColumn get signature => text()();
+  DateTimeColumn get signedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ── Debt Events ───────────────────────────────────────────────────────────────
+class DebtEvents extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get debtId => integer().references(Debts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get eventType => text()();
+  TextColumn get actorPublicKey => text().nullable()();
+  TextColumn get eventData => text().nullable()();
+  DateTimeColumn get occurredAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ── Known Contacts ────────────────────────────────────────────────────────────
+class KnownContacts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get displayName => text()();
+  TextColumn get publicKey => text()();
+  DateTimeColumn get addedAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get lastInteraction => dateTime().nullable()();
+  BoolColumn get isTrusted => boolean().withDefault(const Constant(false))();
+}
+
+// ── Sync Queue ────────────────────────────────────────────────────────────────
+class SyncQueue extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get debtId => integer().references(Debts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get method => text()();
+  TextColumn get payload => text()();
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  IntColumn get attempts => integer().withDefault(const Constant(0))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+  DateTimeColumn get sentAt => dateTime().nullable()();
 }

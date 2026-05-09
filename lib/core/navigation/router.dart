@@ -30,6 +30,10 @@ import '../../features/house/house_members_screen.dart';
 import '../../features/house/house_sync_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
+import '../../features/auth/screens/welcome_screen.dart';
+import '../../features/auth/screens/email_input_screen.dart';
+import '../../features/auth/screens/otp_verify_screen.dart';
+import '../../features/auth/screens/profile_setup_screen.dart';
 
 // ── Router Notifier ───────────────────────────────────────────────────────────
 // ChangeNotifier that listens to auth + settings and notifies the GoRouter
@@ -100,6 +104,24 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/lock',
         builder: (ctx, _) => const LockScreen(),
+      ),
+
+      // Auth flow routes
+      GoRoute(
+        path: '/auth/welcome',
+        builder: (ctx, _) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: '/auth/email',
+        builder: (ctx, _) => const EmailInputScreen(),
+      ),
+      GoRoute(
+        path: '/auth/otp',
+        builder: (ctx, _) => const OtpVerifyScreen(),
+      ),
+      GoRoute(
+        path: '/auth/profile',
+        builder: (ctx, _) => const ProfileSetupScreen(),
       ),
 
       // Main shell with bottom nav

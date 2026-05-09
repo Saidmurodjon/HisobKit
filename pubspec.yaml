@@ -57,6 +57,8 @@ dependencies:
 
   # Network & launcher
   http: ^1.2.0
+  google_sign_in: ^6.2.2
+  dio: ^5.8.0+1
   url_launcher: ^6.3.0
   open_file: ^3.5.10
 

@@ -1,0 +1,27 @@
+name = "hisobkit-api"
+main = "src/index.ts"
+compatibility_date = "2024-09-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding      = "DB"
+database_name = "hisobkit-db"
+database_id  = "PLACEHOLDER_ID"
+
+[[kv_namespaces]]
+binding = "AUTH_KV"
+id      = "PLACEHOLDER_ID"
+
+[vars]
+APP_NAME          = "HisobKit"
+ACCESS_TOKEN_TTL  = "900"
+REFRESH_TOKEN_TTL = "2592000"
+OTP_TTL           = "300"
+OTP_MAX_ATTEMPTS  = "3"
+RATE_LIMIT_WINDOW = "60"
+
+# Secrets (wrangler secret put orqali qo'shiladi):
+# JWT_SECRET
+# GOOGLE_CLIENT_ID
+# RESEND_API_KEY
+# RESEND_FROM_EMAIL

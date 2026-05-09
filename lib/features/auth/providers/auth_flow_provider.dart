@@ -14,7 +14,7 @@ final googleAuthServiceProvider =
 
 // ── Muhim: wrangler deploy dan keyin bu URL ni yangilang
 // wrangler deploy → "Published to https://hisobkit-api.XXXX.workers.dev"
-const String _apiBaseUrl = 'https://hisobkit-api.PLACEHOLDER.workers.dev';
+const String _apiBaseUrl = 'https://hisobkit-api.saidmurodjon1020.workers.dev';
 
 final authApiServiceProvider = Provider<AuthApiService>((ref) {
   return AuthApiService(

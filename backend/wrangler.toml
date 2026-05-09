@@ -6,11 +6,11 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding      = "DB"
 database_name = "hisobkit-db"
-database_id  = "PLACEHOLDER_ID"
+database_id  = "75c5f61c-1ef6-490d-86ee-d6efd4a55219"
 
 [[kv_namespaces]]
 binding = "AUTH_KV"
-id      = "PLACEHOLDER_ID"
+id      = "69e6946ab168414c924dbd7669a50ada"
 
 [vars]
 APP_NAME          = "HisobKit"

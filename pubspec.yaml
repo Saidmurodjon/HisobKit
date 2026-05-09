@@ -58,6 +58,7 @@ dependencies:
   # Network & launcher
   http: ^1.2.0
   url_launcher: ^6.3.0
+  open_file: ^3.5.10
 
   # New design & features
   google_fonts: ^6.2.1

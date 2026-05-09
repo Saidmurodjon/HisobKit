@@ -1,13 +1,15 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart';
 
-const String _currentVersion = '1.1.1';
+const String _currentVersion = '1.2.2';
 const String _repoOwner = 'Saidmurodjon';
 const String _repoName = 'HisobKit';
 
 class ReleaseInfo {
-  final String version;       // e.g. "1.2.0"
-  final String tagName;       // e.g. "v1.2.0"
+  final String version;       // e.g. "1.2.2"
+  final String tagName;       // e.g. "v1.2.2"
   final String downloadUrl;   // direct APK asset URL
   final String releaseUrl;    // HTML release page
   final String body;          // release notes
@@ -69,6 +71,45 @@ class UpdateChecker {
         publishedAt: publishedAt,
         isNewer: isNewer,
       );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Downloads the APK from [url] to the app cache dir.
+  /// Calls [onProgress] with value 0.0–1.0 as download proceeds.
+  /// Returns the local file path on success, null on failure.
+  static Future<String?> downloadApk(
+    String url, {
+    void Function(double progress)? onProgress,
+    void Function()? onDone,
+  }) async {
+    try {
+      final request = http.Request('GET', Uri.parse(url));
+      final response = await http.Client().send(request);
+
+      if (response.statusCode != 200) return null;
+
+      final total = response.contentLength ?? 0;
+      int received = 0;
+
+      final dir = await getTemporaryDirectory();
+      final filePath = '${dir.path}/hisobkit_update.apk';
+      final file = File(filePath);
+      final sink = file.openWrite();
+
+      await response.stream.forEach((chunk) {
+        sink.add(chunk);
+        received += chunk.length;
+        if (total > 0 && onProgress != null) {
+          onProgress(received / total);
+        }
+      });
+
+      await sink.flush();
+      await sink.close();
+      onDone?.call();
+      return filePath;
     } catch (_) {
       return null;
     }

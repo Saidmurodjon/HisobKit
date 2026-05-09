@@ -8,7 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:open_file/open_file.dart';
 import '../../core/services/update_checker.dart';
 import '../../core/database/app_database.dart';
 import '../../core/database/database_provider.dart';
@@ -1033,16 +1033,50 @@ class _UpdateCheckerTileState extends State<_UpdateCheckerTile> {
   }
 }
 
-class _UpdateDialog extends StatelessWidget {
+class _UpdateDialog extends StatefulWidget {
   final ReleaseInfo info;
   const _UpdateDialog({required this.info});
 
   @override
+  State<_UpdateDialog> createState() => _UpdateDialogState();
+}
+
+class _UpdateDialogState extends State<_UpdateDialog> {
+  // null = idle, 0.0–1.0 = downloading, -1 = error
+  double? _progress;
+  bool _installing = false;
+
+  Future<void> _startDownload() async {
+    setState(() => _progress = 0.0);
+
+    final path = await UpdateChecker.downloadApk(
+      widget.info.downloadUrl,
+      onProgress: (p) {
+        if (mounted) setState(() => _progress = p);
+      },
+    );
+
+    if (!mounted) return;
+
+    if (path == null) {
+      setState(() => _progress = -1);
+      return;
+    }
+
+    setState(() => _installing = true);
+    await OpenFile.open(path);
+    if (mounted) Navigator.pop(context);
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final notes = info.body.length > 400
-        ? '${info.body.substring(0, 400)}…'
-        : info.body;
+    final notes = widget.info.body.length > 400
+        ? '${widget.info.body.substring(0, 400)}…'
+        : widget.info.body;
+
+    final isDownloading = _progress != null && _progress! >= 0 && !_installing;
+    final isError = _progress == -1;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -1050,7 +1084,7 @@ class _UpdateDialog extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Header
+          // ── Gradient header ──────────────────────────────────────────
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
@@ -1088,15 +1122,77 @@ class _UpdateDialog extends StatelessWidget {
                     const Icon(Icons.arrow_forward,
                         size: 16, color: Colors.white54),
                     const SizedBox(width: 8),
-                    _versionChip(
-                        l10n.latestVersionLabel, info.version, AppTheme.accent),
+                    _versionChip(l10n.latestVersionLabel,
+                        widget.info.version, AppTheme.accent),
                   ],
                 ),
               ],
             ),
           ),
-          // Body
-          if (notes.isNotEmpty)
+
+          // ── Progress / status ─────────────────────────────────────────
+          if (isDownloading || _installing)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        _installing
+                            ? 'O\'rnatilmoqda...'
+                            : 'Yuklanmoqda... ${((_progress ?? 0) * 100).toStringAsFixed(0)}%',
+                        style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: AppTheme.primary),
+                      ),
+                      if (!_installing)
+                        Text(
+                          '${((_progress ?? 0) * 100).toStringAsFixed(0)}%',
+                          style: GoogleFonts.sora(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.accent),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: _installing ? null : _progress,
+                      minHeight: 6,
+                      backgroundColor: Colors.grey.shade200,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppTheme.accent),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          if (isError)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline,
+                      color: Colors.red, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Yuklab bo\'lmadi. Internet tekshiring.',
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: Colors.red.shade700),
+                  ),
+                ],
+              ),
+            ),
+
+          // ── Release notes ─────────────────────────────────────────────
+          if (notes.isNotEmpty && !isDownloading && !_installing)
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -1116,38 +1212,38 @@ class _UpdateDialog extends StatelessWidget {
                 ],
               ),
             ),
+
+          const SizedBox(height: 8),
         ],
       ),
       actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Keyinroq'),
-        ),
-        FilledButton.icon(
-          icon: const Icon(Icons.download, size: 18),
-          label: Text(l10n.updateNow),
-          onPressed: () async {
-            Navigator.pop(context);
-            final uri = Uri.parse(info.downloadUrl);
-            if (await canLaunchUrl(uri)) {
-              await launchUrl(uri, mode: LaunchMode.externalApplication);
-            } else {
-              // Fallback: copy URL to clipboard
-              await Clipboard.setData(ClipboardData(text: info.releaseUrl));
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                      content: Text('Havola nusxalandi — brauzerni oching')),
-                );
-              }
-            }
-          },
-          style: FilledButton.styleFrom(
-            backgroundColor: AppTheme.accent,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12)),
+        // "Keyinroq" faqat yuklanmayotganda ko'rsatiladi
+        if (!isDownloading && !_installing)
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Keyinroq'),
           ),
-        ),
+
+        // Asosiy tugma
+        if (!_installing)
+          FilledButton.icon(
+            icon: Icon(
+              isError ? Icons.refresh : Icons.download,
+              size: 18,
+            ),
+            label: Text(isDownloading
+                ? 'Yuklanmoqda...'
+                : isError
+                    ? 'Qayta urinish'
+                    : l10n.updateNow),
+            onPressed: isDownloading ? null : _startDownload,
+            style: FilledButton.styleFrom(
+              backgroundColor: isError ? Colors.red : AppTheme.accent,
+              disabledBackgroundColor: AppTheme.accent.withOpacity(0.5),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
       ],
     );
   }

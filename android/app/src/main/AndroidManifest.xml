@@ -14,6 +14,9 @@
     <!-- Internet: update checker + exchange rates -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- In-app APK update installation -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- url_launcher: allow opening https links -->
     <queries>
         <intent>

@@ -12,6 +12,8 @@ import '../../features/categories/categories_screen.dart';
 import '../../features/budgets/budgets_screen.dart';
 import '../../features/reports/reports_screen.dart';
 import '../../features/debts/debts_screen.dart';
+import '../../features/debts/islamic_contract_screen.dart';
+import '../database/app_database.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/export/export_screen.dart';
 import '../../features/house/house_dashboard_screen.dart';
@@ -19,6 +21,7 @@ import '../../features/house/add_house_expense_screen.dart';
 import '../../features/house/settlement_screen.dart';
 import '../../features/house/shopping_list_screen.dart';
 import '../../features/house/house_members_screen.dart';
+import '../../features/house/house_sync_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 
@@ -167,6 +170,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/export',
         builder: (ctx, _) => const ExportScreen(),
       ),
+      GoRoute(
+        path: '/debts/:id/contract',
+        builder: (ctx, state) {
+          final debt = state.extra as Debt;
+          return IslamicContractScreen(debt: debt);
+        },
+      ),
 
       // House sub-routes
       GoRoute(
@@ -195,6 +205,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (ctx, state) {
           final groupId = state.extra as int? ?? 0;
           return HouseMembersScreen(groupId: groupId);
+        },
+      ),
+      GoRoute(
+        path: '/house/sync',
+        builder: (ctx, state) {
+          final groupId = state.extra as int? ?? 0;
+          return HouseSyncScreen(groupId: groupId);
         },
       ),
     ],

@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart' show Value;
+import 'islamic_contract_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -335,6 +336,14 @@ class DebtDetailScreen extends ConsumerWidget {
           appBar: AppBar(
             title: Text(debt.personName),
             actions: [
+              IconButton(
+                icon: const Icon(Icons.verified_outlined),
+                tooltip: 'Islomiy Shartnoma',
+                onPressed: () => context.push(
+                  '/debts/${debt.id}/contract',
+                  extra: debt,
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.edit_outlined),
                 onPressed: () => showModalBottomSheet(

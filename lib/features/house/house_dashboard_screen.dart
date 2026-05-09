@@ -22,6 +22,15 @@ class HouseDashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.houseTab),
         actions: [
+          if (ref.watch(activeGroupProvider) != null)
+            IconButton(
+              icon: const Icon(Icons.sync_outlined),
+              tooltip: 'Sinxronizatsiya',
+              onPressed: () => context.push(
+                '/house/sync',
+                extra: ref.read(activeGroupProvider) ?? 0,
+              ),
+            ),
           IconButton(
             icon: const Icon(Icons.add),
             tooltip: l10n.createGroup,

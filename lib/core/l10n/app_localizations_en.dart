@@ -601,4 +601,136 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get quickAdd => 'Quick Add';
+
+  @override
+  String get houseTab => 'House';
+
+  @override
+  String get houseExpenses => 'House Expenses';
+
+  @override
+  String get addHouseExpense => 'Add Expense';
+
+  @override
+  String get presentMembers => 'Who was there?';
+
+  @override
+  String get perPerson => 'Per person';
+
+  @override
+  String get settlement => 'Settlement';
+
+  @override
+  String get minTransfers => 'Minimal transfers';
+
+  @override
+  String get shoppingList => 'Shopping List';
+
+  @override
+  String get markBought => 'Mark as bought';
+
+  @override
+  String get addToExpenses => 'Add to expenses?';
+
+  @override
+  String get confirmSettlement => 'Confirm Settlement';
+
+  @override
+  String get settlementDone => 'Settlement done';
+
+  @override
+  String get islamicContract => 'Islamic Contract';
+
+  @override
+  String get contractType => 'Contract type';
+
+  @override
+  String get qarzUlHasan => 'Qarz ul-Hasan (interest-free)';
+
+  @override
+  String get witnesses => 'Witnesses';
+
+  @override
+  String get witness1 => 'Witness 1';
+
+  @override
+  String get witness2 => 'Witness 2';
+
+  @override
+  String get guarantor => 'Guarantor';
+
+  @override
+  String get collateral => 'Collateral';
+
+  @override
+  String get paymentSchedule => 'Payment schedule';
+
+  @override
+  String get oneTime => 'One time';
+
+  @override
+  String get installments => 'Installments';
+
+  @override
+  String get contractPreview => 'Preview contract';
+
+  @override
+  String get saveContract => 'Save';
+
+  @override
+  String get shareContract => 'Share';
+
+  @override
+  String get memberBalance => 'Member balance';
+
+  @override
+  String get groupSync => 'Sync group';
+
+  @override
+  String get syncViaQr => 'Via QR';
+
+  @override
+  String get importFromFile => 'Import from file';
+
+  @override
+  String get mergeResult => 'Result';
+
+  @override
+  String get todayLabel => 'Today';
+
+  @override
+  String get yesterdayLabel => 'Yesterday';
+
+  @override
+  String get chooseDateLabel => 'Choose date';
+
+  @override
+  String get paidBy => 'Paid by';
+
+  @override
+  String get groupName => 'Group name';
+
+  @override
+  String get addMember => 'Add member';
+
+  @override
+  String get memberName => 'Member name';
+
+  @override
+  String get noGroup => 'No group';
+
+  @override
+  String get createGroup => 'Create group';
+
+  @override
+  String get netPosition => 'Net position';
+
+  @override
+  String get shareViaQr => 'Share via QR';
+
+  @override
+  String get urgent => 'Urgent';
+
+  @override
+  String get normalPriority => 'Normal';
 }

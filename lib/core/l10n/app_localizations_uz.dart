@@ -604,4 +604,136 @@ class AppLocalizationsUz extends AppLocalizations {
 
   @override
   String get quickAdd => 'Tez qo\'shish';
+
+  @override
+  String get houseTab => 'Uy';
+
+  @override
+  String get houseExpenses => 'Uy xarajatlari';
+
+  @override
+  String get addHouseExpense => 'Xarajat qo\'shish';
+
+  @override
+  String get presentMembers => 'Kimlar bor edi?';
+
+  @override
+  String get perPerson => 'Kishi boshiga';
+
+  @override
+  String get settlement => 'Hisob-kitob';
+
+  @override
+  String get minTransfers => 'Minimal o\'tkazmalar';
+
+  @override
+  String get shoppingList => 'Xarid ro\'yxati';
+
+  @override
+  String get markBought => 'Olingan deb belgilash';
+
+  @override
+  String get addToExpenses => 'Xarajatga qo\'shish?';
+
+  @override
+  String get confirmSettlement => 'Hisob-kitobni yakunlash';
+
+  @override
+  String get settlementDone => 'Hisob-kitob yakunlandi';
+
+  @override
+  String get islamicContract => 'Islomiy shartnoma';
+
+  @override
+  String get contractType => 'Shartnoma turi';
+
+  @override
+  String get qarzUlHasan => 'Qarz ul-Hasan (foizsiz)';
+
+  @override
+  String get witnesses => 'Guvohlar';
+
+  @override
+  String get witness1 => 'Guvoh 1';
+
+  @override
+  String get witness2 => 'Guvoh 2';
+
+  @override
+  String get guarantor => 'Kafil';
+
+  @override
+  String get collateral => 'Garov';
+
+  @override
+  String get paymentSchedule => 'To\'lov grafigi';
+
+  @override
+  String get oneTime => 'Bir marta';
+
+  @override
+  String get installments => 'Bo\'lib to\'lash';
+
+  @override
+  String get contractPreview => 'Shartnomani ko\'rish';
+
+  @override
+  String get saveContract => 'Saqlash';
+
+  @override
+  String get shareContract => 'Ulashish';
+
+  @override
+  String get memberBalance => 'A\'zo balansi';
+
+  @override
+  String get groupSync => 'Guruhni sinxronlash';
+
+  @override
+  String get syncViaQr => 'QR orqali';
+
+  @override
+  String get importFromFile => 'Fayldan yuklash';
+
+  @override
+  String get mergeResult => 'Natija';
+
+  @override
+  String get todayLabel => 'Bugun';
+
+  @override
+  String get yesterdayLabel => 'Kecha';
+
+  @override
+  String get chooseDateLabel => 'Sana tanlash';
+
+  @override
+  String get paidBy => 'Kim to\'ladi';
+
+  @override
+  String get groupName => 'Guruh nomi';
+
+  @override
+  String get addMember => 'A\'zo qo\'shish';
+
+  @override
+  String get memberName => 'A\'zo ismi';
+
+  @override
+  String get noGroup => 'Guruh yo\'q';
+
+  @override
+  String get createGroup => 'Guruh yaratish';
+
+  @override
+  String get netPosition => 'Sof pozitsiya';
+
+  @override
+  String get shareViaQr => 'QR orqali ulashish';
+
+  @override
+  String get urgent => 'Shoshilinch';
+
+  @override
+  String get normalPriority => 'Oddiy';
 }

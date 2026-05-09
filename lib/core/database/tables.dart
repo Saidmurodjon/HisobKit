@@ -94,3 +94,82 @@ class AppSettings extends Table {
   @override
   Set<Column> get primaryKey => {key};
 }
+
+// ── Islamic Contracts ─────────────────────────────────────────────────────────
+class IslamicContracts extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get debtId => integer().references(Debts, #id, onDelete: KeyAction.cascade)();
+  TextColumn get contractType => text().withDefault(const Constant('qarz_ul_hasan'))();
+  TextColumn get witnessOne => text().withDefault(const Constant(''))();
+  TextColumn get witnessTwo => text().withDefault(const Constant(''))();
+  TextColumn get guarantorName => text().nullable()();
+  TextColumn get collateralDesc => text().nullable()();
+  TextColumn get paymentScheduleJson => text().nullable()();
+  TextColumn get quranVerseRef => text().withDefault(const Constant('Al-Baqarah 2:282'))();
+  TextColumn get signerName => text().withDefault(const Constant(''))();
+  TextColumn get borrowerName => text().withDefault(const Constant(''))();
+  BoolColumn get isConfirmedByBoth => boolean().withDefault(const Constant(false))();
+  TextColumn get contractNote => text().withDefault(const Constant(''))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ── House Groups ──────────────────────────────────────────────────────────────
+class HouseGroups extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  TextColumn get color => text().withDefault(const Constant('#0A2540'))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ── House Members ─────────────────────────────────────────────────────────────
+class HouseMembers extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get groupId => integer().references(HouseGroups, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  TextColumn get color => text().withDefault(const Constant('#00C896'))();
+  BoolColumn get isActive => boolean().withDefault(const Constant(true))();
+}
+
+// ── House Expenses ────────────────────────────────────────────────────────────
+class HouseExpenses extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get groupId => integer().references(HouseGroups, #id, onDelete: KeyAction.cascade)();
+  IntColumn get paidByMemberId => integer().references(HouseMembers, #id)();
+  TextColumn get title => text().withLength(min: 1, max: 200)();
+  RealColumn get amount => real().withDefault(const Constant(0.0))();
+  TextColumn get currency => text().withDefault(const Constant('UZS'))();
+  DateTimeColumn get date => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get note => text().withDefault(const Constant(''))();
+  BoolColumn get isSettled => boolean().withDefault(const Constant(false))();
+}
+
+// ── House Expense Splits ──────────────────────────────────────────────────────
+class HouseExpenseSplits extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get expenseId => integer().references(HouseExpenses, #id, onDelete: KeyAction.cascade)();
+  IntColumn get memberId => integer().references(HouseMembers, #id)();
+  RealColumn get shareAmount => real().withDefault(const Constant(0.0))();
+}
+
+// ── House Settlements ─────────────────────────────────────────────────────────
+class HouseSettlements extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get groupId => integer().references(HouseGroups, #id, onDelete: KeyAction.cascade)();
+  IntColumn get fromMemberId => integer().references(HouseMembers, #id)();
+  IntColumn get toMemberId => integer().references(HouseMembers, #id)();
+  RealColumn get amount => real().withDefault(const Constant(0.0))();
+  DateTimeColumn get settledAt => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get note => text().withDefault(const Constant(''))();
+}
+
+// ── Shopping Items ────────────────────────────────────────────────────────────
+class ShoppingItems extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get groupId => integer().references(HouseGroups, #id, onDelete: KeyAction.cascade)();
+  IntColumn get addedByMemberId => integer().references(HouseMembers, #id)();
+  TextColumn get name => text().withLength(min: 1, max: 200)();
+  TextColumn get quantity => text().withDefault(const Constant('1'))();
+  BoolColumn get isBought => boolean().withDefault(const Constant(false))();
+  BoolColumn get isUrgent => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get addedAt => dateTime().withDefault(currentDateAndTime)();
+}

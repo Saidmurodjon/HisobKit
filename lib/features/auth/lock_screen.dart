@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/settings_provider.dart';
 import '../../core/security/biometric_service.dart';
@@ -13,18 +14,34 @@ class LockScreen extends ConsumerStatefulWidget {
   ConsumerState<LockScreen> createState() => _LockScreenState();
 }
 
-class _LockScreenState extends ConsumerState<LockScreen> {
+class _LockScreenState extends ConsumerState<LockScreen>
+    with SingleTickerProviderStateMixin {
   final List<String> _pin = [];
   bool _isError = false;
   bool _biometricsAvailable = false;
+  late final AnimationController _shakeController;
+  late final Animation<double> _shakeAnimation;
 
   @override
   void initState() {
     super.initState();
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _shakeAnimation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.elasticOut),
+    );
     _checkBiometrics();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _tryBiometrics();
     });
+  }
+
+  @override
+  void dispose() {
+    _shakeController.dispose();
+    super.dispose();
   }
 
   Future<void> _checkBiometrics() async {
@@ -61,6 +78,7 @@ class _LockScreenState extends ConsumerState<LockScreen> {
         await ref.read(authProvider.notifier).authenticateWithPin(pinStr);
     if (!success && mounted) {
       HapticFeedback.heavyImpact();
+      _shakeController.forward(from: 0);
       setState(() {
         _isError = true;
         _pin.clear();
@@ -70,56 +88,91 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = Localizations.of<MaterialLocalizations>(
-        context, MaterialLocalizations)!;
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(),
-            Icon(
-              Icons.lock_outline,
-              size: 64,
-              color: colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'HisobKit',
-              style: theme.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-                color: colorScheme.primary,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [AppTheme.primary, Color(0xFF1A3A5C)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const Spacer(),
+              // App icon + title
+              Container(
+                width: 72,
+                height: 72,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: const Icon(
+                  Icons.lock_outline_rounded,
+                  size: 36,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Enter PIN',
-              style: theme.textTheme.bodyLarge?.copyWith(
-                color: colorScheme.onSurfaceVariant,
+              const SizedBox(height: 16),
+              Text(
+                'HisobKit',
+                style: GoogleFonts.sora(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
               ),
-            ),
-            const SizedBox(height: 32),
-            _PinDots(
-              length: _pin.length,
-              isError: _isError,
-            ),
-            if (_isError) ...[
               const SizedBox(height: 8),
               Text(
-                'Incorrect PIN. Try again.',
-                style: TextStyle(color: colorScheme.error, fontSize: 14),
+                'Enter PIN',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  color: Colors.white60,
+                ),
               ),
+              const SizedBox(height: 40),
+              // PIN dots with shake
+              AnimatedBuilder(
+                animation: _shakeAnimation,
+                builder: (context, child) {
+                  final shake = _isError
+                      ? 12 * (_shakeAnimation.value > 0.5
+                          ? 1 - _shakeAnimation.value
+                          : _shakeAnimation.value)
+                      : 0.0;
+                  return Transform.translate(
+                    offset: Offset(shake * 2, 0),
+                    child: child,
+                  );
+                },
+                child: _PinDots(
+                  length: _pin.length,
+                  isError: _isError,
+                ),
+              ),
+              if (_isError) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Incorrect PIN. Try again.',
+                  style: GoogleFonts.inter(
+                    color: AppTheme.danger,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+              const Spacer(),
+              // Numpad
+              _NumPad(
+                onDigit: _addDigit,
+                onDelete: _removeDigit,
+                onBiometrics: _biometricsAvailable ? _tryBiometrics : null,
+              ),
+              const SizedBox(height: 40),
             ],
-            const Spacer(),
-            _NumPad(
-              onDigit: _addDigit,
-              onDelete: _removeDigit,
-              onBiometrics: _biometricsAvailable ? _tryBiometrics : null,
-            ),
-            const SizedBox(height: 32),
-          ],
+          ),
         ),
       ),
     );
@@ -134,9 +187,7 @@ class _PinDots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = isError
-        ? Theme.of(context).colorScheme.error
-        : Theme.of(context).colorScheme.primary;
+    final color = isError ? AppTheme.danger : AppTheme.accent;
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -144,9 +195,9 @@ class _PinDots extends StatelessWidget {
         final filled = i < length;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          margin: const EdgeInsets.symmetric(horizontal: 6),
-          width: 16,
-          height: 16,
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          width: 14,
+          height: 14,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: filled ? color : Colors.transparent,
@@ -178,27 +229,29 @@ class _NumPad extends StatelessWidget {
     ];
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 48),
+      padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
         children: [
-          ...buttons.map((row) => Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: row
-                    .map((d) => _DigitButton(digit: d, onTap: onDigit))
-                    .toList(),
+          ...buttons.map((row) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children:
+                      row.map((d) => _DigitButton(digit: d, onTap: onDigit)).toList(),
+                ),
               )),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               if (onBiometrics != null)
-                _IconButton(
+                _IconNumButton(
                   icon: Icons.fingerprint,
                   onTap: onBiometrics!,
                 )
               else
                 const SizedBox(width: 72, height: 72),
               _DigitButton(digit: '0', onTap: onDigit),
-              _IconButton(
+              _IconNumButton(
                 icon: Icons.backspace_outlined,
                 onTap: onDelete,
               ),
@@ -225,22 +278,28 @@ class _DigitButton extends StatelessWidget {
         width: 72,
         height: 72,
         alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.08),
+          shape: BoxShape.circle,
+        ),
         child: Text(
           digit,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w500,
-              ),
+          style: GoogleFonts.sora(
+            fontSize: 24,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
         ),
       ),
     );
   }
 }
 
-class _IconButton extends StatelessWidget {
+class _IconNumButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onTap;
 
-  const _IconButton({required this.icon, required this.onTap});
+  const _IconNumButton({required this.icon, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -251,7 +310,7 @@ class _IconButton extends StatelessWidget {
         width: 72,
         height: 72,
         alignment: Alignment.center,
-        child: Icon(icon, size: 28),
+        child: Icon(icon, size: 28, color: Colors.white70),
       ),
     );
   }

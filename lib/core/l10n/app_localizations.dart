@@ -1281,6 +1281,270 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Quick Add'**
   String get quickAdd;
+
+  /// No description provided for @houseTab.
+  ///
+  /// In en, this message translates to:
+  /// **'House'**
+  String get houseTab;
+
+  /// No description provided for @houseExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'House Expenses'**
+  String get houseExpenses;
+
+  /// No description provided for @addHouseExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Expense'**
+  String get addHouseExpense;
+
+  /// No description provided for @presentMembers.
+  ///
+  /// In en, this message translates to:
+  /// **'Who was there?'**
+  String get presentMembers;
+
+  /// No description provided for @perPerson.
+  ///
+  /// In en, this message translates to:
+  /// **'Per person'**
+  String get perPerson;
+
+  /// No description provided for @settlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement'**
+  String get settlement;
+
+  /// No description provided for @minTransfers.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal transfers'**
+  String get minTransfers;
+
+  /// No description provided for @shoppingList.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping List'**
+  String get shoppingList;
+
+  /// No description provided for @markBought.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark as bought'**
+  String get markBought;
+
+  /// No description provided for @addToExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to expenses?'**
+  String get addToExpenses;
+
+  /// No description provided for @confirmSettlement.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm Settlement'**
+  String get confirmSettlement;
+
+  /// No description provided for @settlementDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Settlement done'**
+  String get settlementDone;
+
+  /// No description provided for @islamicContract.
+  ///
+  /// In en, this message translates to:
+  /// **'Islamic Contract'**
+  String get islamicContract;
+
+  /// No description provided for @contractType.
+  ///
+  /// In en, this message translates to:
+  /// **'Contract type'**
+  String get contractType;
+
+  /// No description provided for @qarzUlHasan.
+  ///
+  /// In en, this message translates to:
+  /// **'Qarz ul-Hasan (interest-free)'**
+  String get qarzUlHasan;
+
+  /// No description provided for @witnesses.
+  ///
+  /// In en, this message translates to:
+  /// **'Witnesses'**
+  String get witnesses;
+
+  /// No description provided for @witness1.
+  ///
+  /// In en, this message translates to:
+  /// **'Witness 1'**
+  String get witness1;
+
+  /// No description provided for @witness2.
+  ///
+  /// In en, this message translates to:
+  /// **'Witness 2'**
+  String get witness2;
+
+  /// No description provided for @guarantor.
+  ///
+  /// In en, this message translates to:
+  /// **'Guarantor'**
+  String get guarantor;
+
+  /// No description provided for @collateral.
+  ///
+  /// In en, this message translates to:
+  /// **'Collateral'**
+  String get collateral;
+
+  /// No description provided for @paymentSchedule.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment schedule'**
+  String get paymentSchedule;
+
+  /// No description provided for @oneTime.
+  ///
+  /// In en, this message translates to:
+  /// **'One time'**
+  String get oneTime;
+
+  /// No description provided for @installments.
+  ///
+  /// In en, this message translates to:
+  /// **'Installments'**
+  String get installments;
+
+  /// No description provided for @contractPreview.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview contract'**
+  String get contractPreview;
+
+  /// No description provided for @saveContract.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get saveContract;
+
+  /// No description provided for @shareContract.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get shareContract;
+
+  /// No description provided for @memberBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Member balance'**
+  String get memberBalance;
+
+  /// No description provided for @groupSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync group'**
+  String get groupSync;
+
+  /// No description provided for @syncViaQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Via QR'**
+  String get syncViaQr;
+
+  /// No description provided for @importFromFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Import from file'**
+  String get importFromFile;
+
+  /// No description provided for @mergeResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Result'**
+  String get mergeResult;
+
+  /// No description provided for @todayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get todayLabel;
+
+  /// No description provided for @yesterdayLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterdayLabel;
+
+  /// No description provided for @chooseDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose date'**
+  String get chooseDateLabel;
+
+  /// No description provided for @paidBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid by'**
+  String get paidBy;
+
+  /// No description provided for @groupName.
+  ///
+  /// In en, this message translates to:
+  /// **'Group name'**
+  String get groupName;
+
+  /// No description provided for @addMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Add member'**
+  String get addMember;
+
+  /// No description provided for @memberName.
+  ///
+  /// In en, this message translates to:
+  /// **'Member name'**
+  String get memberName;
+
+  /// No description provided for @noGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'No group'**
+  String get noGroup;
+
+  /// No description provided for @createGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'Create group'**
+  String get createGroup;
+
+  /// No description provided for @netPosition.
+  ///
+  /// In en, this message translates to:
+  /// **'Net position'**
+  String get netPosition;
+
+  /// No description provided for @shareViaQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Share via QR'**
+  String get shareViaQr;
+
+  /// No description provided for @urgent.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgent'**
+  String get urgent;
+
+  /// No description provided for @normalPriority.
+  ///
+  /// In en, this message translates to:
+  /// **'Normal'**
+  String get normalPriority;
 }
 
 class _AppLocalizationsDelegate

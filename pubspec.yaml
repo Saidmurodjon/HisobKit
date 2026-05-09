@@ -50,6 +50,13 @@ dependencies:
   # UI utilities
   flutter_colorpicker: ^1.1.0
 
+  # New design & features
+  google_fonts: ^6.2.1
+  flutter_animate: ^4.5.2
+  qr_flutter: ^4.1.0
+  mobile_scanner: ^5.2.3
+  pdfx: ^2.2.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

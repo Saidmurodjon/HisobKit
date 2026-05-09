@@ -602,4 +602,136 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get quickAdd => 'Быстрое добавление';
+
+  @override
+  String get houseTab => 'Дом';
+
+  @override
+  String get houseExpenses => 'Расходы дома';
+
+  @override
+  String get addHouseExpense => 'Добавить расход';
+
+  @override
+  String get presentMembers => 'Кто присутствовал?';
+
+  @override
+  String get perPerson => 'На человека';
+
+  @override
+  String get settlement => 'Расчёт';
+
+  @override
+  String get minTransfers => 'Минимум переводов';
+
+  @override
+  String get shoppingList => 'Список покупок';
+
+  @override
+  String get markBought => 'Отметить как куплено';
+
+  @override
+  String get addToExpenses => 'Добавить в расходы?';
+
+  @override
+  String get confirmSettlement => 'Завершить расчёт';
+
+  @override
+  String get settlementDone => 'Расчёт завершён';
+
+  @override
+  String get islamicContract => 'Исламский контракт';
+
+  @override
+  String get contractType => 'Тип контракта';
+
+  @override
+  String get qarzUlHasan => 'Карз уль-Хасан (беспроцентный)';
+
+  @override
+  String get witnesses => 'Свидетели';
+
+  @override
+  String get witness1 => 'Свидетель 1';
+
+  @override
+  String get witness2 => 'Свидетель 2';
+
+  @override
+  String get guarantor => 'Поручитель';
+
+  @override
+  String get collateral => 'Залог';
+
+  @override
+  String get paymentSchedule => 'График платежей';
+
+  @override
+  String get oneTime => 'Единовременно';
+
+  @override
+  String get installments => 'В рассрочку';
+
+  @override
+  String get contractPreview => 'Просмотр контракта';
+
+  @override
+  String get saveContract => 'Сохранить';
+
+  @override
+  String get shareContract => 'Поделиться';
+
+  @override
+  String get memberBalance => 'Баланс участника';
+
+  @override
+  String get groupSync => 'Синхронизация группы';
+
+  @override
+  String get syncViaQr => 'Через QR';
+
+  @override
+  String get importFromFile => 'Импорт из файла';
+
+  @override
+  String get mergeResult => 'Результат';
+
+  @override
+  String get todayLabel => 'Сегодня';
+
+  @override
+  String get yesterdayLabel => 'Вчера';
+
+  @override
+  String get chooseDateLabel => 'Выбрать дату';
+
+  @override
+  String get paidBy => 'Кто заплатил';
+
+  @override
+  String get groupName => 'Название группы';
+
+  @override
+  String get addMember => 'Добавить участника';
+
+  @override
+  String get memberName => 'Имя участника';
+
+  @override
+  String get noGroup => 'Нет группы';
+
+  @override
+  String get createGroup => 'Создать группу';
+
+  @override
+  String get netPosition => 'Чистая позиция';
+
+  @override
+  String get shareViaQr => 'Поделиться через QR';
+
+  @override
+  String get urgent => 'Срочно';
+
+  @override
+  String get normalPriority => 'Обычный';
 }

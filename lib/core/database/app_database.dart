@@ -14,6 +14,8 @@ import 'daos/budgets_dao.dart';
 import 'daos/debts_dao.dart';
 import 'daos/currencies_dao.dart';
 import 'daos/settings_dao.dart';
+import 'daos/islamic_contracts_dao.dart';
+import 'daos/house_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -27,6 +29,13 @@ part 'app_database.g.dart';
     DebtPayments,
     Currencies,
     AppSettings,
+    IslamicContracts,
+    HouseGroups,
+    HouseMembers,
+    HouseExpenses,
+    HouseExpenseSplits,
+    HouseSettlements,
+    ShoppingItems,
   ],
   daos: [
     AccountsDao,
@@ -36,13 +45,15 @@ part 'app_database.g.dart';
     DebtsDao,
     CurrenciesDao,
     SettingsDao,
+    IslamicContractsDao,
+    HouseDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -50,7 +61,17 @@ class AppDatabase extends _$AppDatabase {
           await m.createAll();
           await _seedDefaultData();
         },
-        onUpgrade: (m, from, to) async {},
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(islamicContracts);
+            await m.createTable(houseGroups);
+            await m.createTable(houseMembers);
+            await m.createTable(houseExpenses);
+            await m.createTable(houseExpenseSplits);
+            await m.createTable(houseSettlements);
+            await m.createTable(shoppingItems);
+          }
+        },
       );
 
   Future<void> _seedDefaultData() async {

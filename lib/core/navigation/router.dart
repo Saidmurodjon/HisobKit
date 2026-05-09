@@ -14,6 +14,11 @@ import '../../features/reports/reports_screen.dart';
 import '../../features/debts/debts_screen.dart';
 import '../../features/settings/settings_screen.dart';
 import '../../features/export/export_screen.dart';
+import '../../features/house/house_dashboard_screen.dart';
+import '../../features/house/add_house_expense_screen.dart';
+import '../../features/house/settlement_screen.dart';
+import '../../features/house/shopping_list_screen.dart';
+import '../../features/house/house_members_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 
@@ -109,6 +114,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (ctx, _) => const DebtsScreen(),
           ),
           GoRoute(
+            path: '/house',
+            builder: (ctx, _) => const HouseDashboardScreen(),
+          ),
+          GoRoute(
             path: '/settings',
             builder: (ctx, _) => const SettingsScreen(),
           ),
@@ -158,6 +167,36 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/export',
         builder: (ctx, _) => const ExportScreen(),
       ),
+
+      // House sub-routes
+      GoRoute(
+        path: '/house/add-expense',
+        builder: (ctx, state) {
+          final groupId = state.extra as int? ?? 0;
+          return AddHouseExpenseScreen(groupId: groupId);
+        },
+      ),
+      GoRoute(
+        path: '/house/settlement',
+        builder: (ctx, state) {
+          final groupId = state.extra as int? ?? 0;
+          return SettlementScreen(groupId: groupId);
+        },
+      ),
+      GoRoute(
+        path: '/house/shopping',
+        builder: (ctx, state) {
+          final groupId = state.extra as int? ?? 0;
+          return ShoppingListScreen(groupId: groupId);
+        },
+      ),
+      GoRoute(
+        path: '/house/members',
+        builder: (ctx, state) {
+          final groupId = state.extra as int? ?? 0;
+          return HouseMembersScreen(groupId: groupId);
+        },
+      ),
     ],
   );
 });
@@ -172,7 +211,8 @@ class _MainShell extends StatelessWidget {
     if (location.startsWith('/transactions')) return 1;
     if (location.startsWith('/reports')) return 2;
     if (location.startsWith('/debts')) return 3;
-    if (location.startsWith('/settings')) return 4;
+    if (location.startsWith('/house')) return 4;
+    if (location.startsWith('/settings')) return 5;
     return 0;
   }
 
@@ -199,6 +239,9 @@ class _MainShell extends StatelessWidget {
               context.go('/debts');
               break;
             case 4:
+              context.go('/house');
+              break;
+            case 5:
               context.go('/settings');
               break;
           }
@@ -223,6 +266,11 @@ class _MainShell extends StatelessWidget {
             icon: Icon(Icons.handshake_outlined),
             selectedIcon: Icon(Icons.handshake),
             label: 'Debts',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.home_work_outlined),
+            selectedIcon: Icon(Icons.home_work),
+            label: 'House',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),

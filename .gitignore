@@ -44,3 +44,5 @@ app.*.map.json
 *.jks
 *.keystore
 key.properties
+*_b64.txt
+*_b64_clean.txt

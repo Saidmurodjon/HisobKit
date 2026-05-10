@@ -15,6 +15,8 @@ import '../../core/database/database_provider.dart';
 import '../../core/l10n/app_localizations.dart';
 import '../../core/providers/settings_provider.dart';
 import '../../core/providers/auth_provider.dart';
+import '../auth/providers/auth_flow_provider.dart';
+import '../auth/models/auth_state.dart' show AuthFlowSuccess;
 import '../../core/security/biometric_service.dart';
 import '../../core/security/pin_service.dart';
 import '../../core/security/encryption_service.dart';
@@ -35,9 +37,16 @@ class SettingsScreen extends ConsumerWidget {
         backgroundColor: _bgColor(context),
         elevation: 0,
         title: Text(
-          l10n.settings,
+          'Profil va Sozlamalar',
           style: GoogleFonts.sora(fontWeight: FontWeight.w700, fontSize: 20),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.home_work_outlined),
+            tooltip: 'Uy xarajatlari',
+            onPressed: () => context.push('/house'),
+          ),
+        ],
       ),
       body: settingsAsync.when(
         data: (settings) => ListView(
@@ -631,9 +640,12 @@ class SettingsScreen extends ConsumerWidget {
 
 // ── UI Components ─────────────────────────────────────────────────────────────
 
-class _ProfileCard extends StatelessWidget {
+class _ProfileCard extends ConsumerWidget {
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authFlowProvider);
+    final user = authState is AuthFlowSuccess ? authState.user : null;
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -644,55 +656,108 @@ class _ProfileCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(20),
       ),
-      child: Row(
+      child: Column(
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: AppTheme.accent.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                  color: AppTheme.accent.withOpacity(0.4), width: 1.5),
-            ),
-            child: const Icon(Icons.person_outline,
-                color: AppTheme.accent, size: 28),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'HisobKit',
-                  style: GoogleFonts.sora(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
+          Row(
+            children: [
+              // Avatar
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: AppTheme.accent.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                      color: AppTheme.accent.withOpacity(0.4), width: 1.5),
+                ),
+                child: user?.avatarUrl != null
+                    ? ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: Image.network(user!.avatarUrl!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const Icon(
+                                Icons.person, color: AppTheme.accent, size: 30)),
+                      )
+                    : const Icon(Icons.person_outline,
+                        color: AppTheme.accent, size: 30),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      user?.displayName ?? 'HisobKit',
+                      style: GoogleFonts.sora(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      user?.maskedEmail ?? 'Shaxsiy Moliya Ilovasi',
+                      style: GoogleFonts.inter(
+                          fontSize: 12, color: Colors.white60),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppTheme.accent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  'v${UpdateChecker.currentVersion}',
+                  style: GoogleFonts.inter(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                       color: Colors.white),
                 ),
+              ),
+            ],
+          ),
+          if (user != null) ...[
+            const SizedBox(height: 12),
+            const Divider(color: Colors.white24, height: 1),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                const Icon(Icons.shield_outlined,
+                    color: Colors.white54, size: 14),
+                const SizedBox(width: 6),
                 Text(
-                  'Shaxsiy Moliya Ilovasi • v1.1.0',
+                  'End-to-end shifrlangan • 100% offline',
                   style: GoogleFonts.inter(
-                      fontSize: 12, color: Colors.white60),
+                      fontSize: 11, color: Colors.white54),
+                ),
+                const Spacer(),
+                GestureDetector(
+                  onTap: () => ref.read(authFlowProvider.notifier).logout(),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.red.withOpacity(0.25),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                          color: Colors.red.withOpacity(0.4), width: 1),
+                    ),
+                    child: Text(
+                      'Chiqish',
+                      style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.red[200]),
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: AppTheme.accent,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              '100% offline',
-              style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white),
-            ),
-          ),
+          ],
         ],
       ),
     );

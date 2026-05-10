@@ -286,8 +286,7 @@ class _MainShell extends StatelessWidget {
     if (location.startsWith('/transactions')) return 1;
     if (location.startsWith('/reports')) return 2;
     if (location.startsWith('/debts')) return 3;
-    if (location.startsWith('/house')) return 4;
-    if (location.startsWith('/settings')) return 5;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 
@@ -300,14 +299,14 @@ class _MainShell extends StatelessWidget {
       body: child,
       bottomNavigationBar: NavigationBar(
         selectedIndex: idx,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         onDestinationSelected: (i) {
           switch (i) {
             case 0: context.go('/'); break;
             case 1: context.go('/transactions'); break;
             case 2: context.go('/reports'); break;
             case 3: context.go('/debts'); break;
-            case 4: context.go('/house'); break;
-            case 5: context.go('/settings'); break;
+            case 4: context.go('/settings'); break;
           }
         },
         destinations: [
@@ -332,14 +331,9 @@ class _MainShell extends StatelessWidget {
             label: l10n.debts,
           ),
           NavigationDestination(
-            icon: const Icon(Icons.home_work_outlined),
-            selectedIcon: const Icon(Icons.home_work),
-            label: l10n.houseTab,
-          ),
-          NavigationDestination(
-            icon: const Icon(Icons.settings_outlined),
-            selectedIcon: const Icon(Icons.settings),
-            label: l10n.settings,
+            icon: const Icon(Icons.person_outline),
+            selectedIcon: const Icon(Icons.person),
+            label: 'Profil',
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'dart:developer' as dev;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../models/auth_state.dart';
@@ -55,6 +56,7 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
     try {
       final idToken = await _google.signIn();
       if (idToken == null) {
+        // User cancelled — go back to initial quietly
         state = const AuthFlowInitial();
         return;
       }
@@ -67,11 +69,15 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
         idToken: idToken,
         expiresIn: res['expiresIn'] as int? ?? 300,
       );
+    } on GoogleAuthException catch (e) {
+      dev.log('Google sign-in error: $e');
+      state = AuthFlowError(message: e.message, code: e.code);
     } on DioException catch (e) {
-      state = AuthFlowError(
-          message: _extractError(e) ?? 'Google kirish xatosi');
-    } catch (_) {
-      state = const AuthFlowError(message: 'Xatolik yuz berdi');
+      dev.log('Google API error: $e');
+      state = AuthFlowError(message: _extractError(e) ?? 'Google kirish xatosi');
+    } catch (e) {
+      dev.log('Google unexpected error: $e');
+      state = AuthFlowError(message: 'Xatolik: $e');
     }
   }
 
@@ -85,7 +91,11 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
         expiresIn: res['expiresIn'] as int? ?? 300,
       );
     } on DioException catch (e) {
+      dev.log('sendEmailOtp error: ${e.response?.statusCode} ${e.response?.data}');
       state = AuthFlowError(message: _extractError(e) ?? 'Email yuborishda xato');
+    } catch (e) {
+      dev.log('sendEmailOtp unexpected: $e');
+      state = AuthFlowError(message: 'Xatolik: $e');
     }
   }
 

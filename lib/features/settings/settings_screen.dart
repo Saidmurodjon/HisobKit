@@ -33,28 +33,16 @@ class SettingsScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: _bgColor(context),
-      appBar: AppBar(
-        backgroundColor: _bgColor(context),
-        elevation: 0,
-        title: Text(
-          'Profil va Sozlamalar',
-          style: GoogleFonts.sora(fontWeight: FontWeight.w700, fontSize: 20),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.home_work_outlined),
-            tooltip: 'Uy xarajatlari',
-            onPressed: () => context.push('/house'),
-          ),
-        ],
-      ),
       body: settingsAsync.when(
-        data: (settings) => ListView(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          children: [
-            // ── Profile pill ─────────────────────────────────────────────
-            _ProfileCard(),
-            const SizedBox(height: 24),
+        data: (settings) => CustomScrollView(
+          slivers: [
+            // ── Payme-style profile header ────────────────────────────
+            SliverToBoxAdapter(child: _ProfileHeader()),
+            // ── Settings list ─────────────────────────────────────────
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              sliver: SliverList(
+                delegate: SliverChildListDelegate([
 
             // ── Appearance ───────────────────────────────────────────────
             _GroupLabel(l10n.language),
@@ -223,7 +211,10 @@ class SettingsScreen extends ConsumerWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 40),
+                  const SizedBox(height: 40),
+                ]),
+              ),
+            ),
           ],
         ),
         loading: () => const Center(child: CircularProgressIndicator.adaptive()),
@@ -640,124 +631,239 @@ class SettingsScreen extends ConsumerWidget {
 
 // ── UI Components ─────────────────────────────────────────────────────────────
 
-class _ProfileCard extends ConsumerWidget {
+/// Payme uslubidagi profil header — gradient fon, markazda katta doira avatar,
+/// ism va email pastida, versiya badge va chiqish tugmasi.
+class _ProfileHeader extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final authState = ref.watch(authFlowProvider);
     final user = authState is AuthFlowSuccess ? authState.user : null;
+    final top = MediaQuery.of(context).padding.top;
 
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [AppTheme.primary, Color(0xFF163A5E)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [AppTheme.primary, Color(0xFF0D2B4A)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Row(
-            children: [
-              // Avatar
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: AppTheme.accent.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: AppTheme.accent.withOpacity(0.4), width: 1.5),
-                ),
-                child: user?.avatarUrl != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(14),
-                        child: Image.network(user!.avatarUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                                Icons.person, color: AppTheme.accent, size: 30)),
-                      )
-                    : const Icon(Icons.person_outline,
-                        color: AppTheme.accent, size: 30),
+          // Decorative circles (background)
+          Positioned(
+            right: -30, top: top - 10,
+            child: Container(
+              width: 160, height: 160,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.04),
               ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+          Positioned(
+            left: -40, bottom: 20,
+            child: Container(
+              width: 120, height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.white.withOpacity(0.04),
+              ),
+            ),
+          ),
+
+          // Content
+          Padding(
+            padding: EdgeInsets.fromLTRB(20, top + 12, 20, 28),
+            child: Column(
+              children: [
+                // Top bar: title + house shortcut
+                Row(
                   children: [
                     Text(
-                      user?.displayName ?? 'HisobKit',
+                      'Profil',
                       style: GoogleFonts.sora(
-                          fontSize: 16,
+                          fontSize: 18,
                           fontWeight: FontWeight.w700,
                           color: Colors.white),
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    Text(
-                      user?.maskedEmail ?? 'Shaxsiy Moliya Ilovasi',
-                      style: GoogleFonts.inter(
-                          fontSize: 12, color: Colors.white60),
-                      overflow: TextOverflow.ellipsis,
+                    const Spacer(),
+                    // Uy xarajatlari shortcut
+                    GestureDetector(
+                      onTap: () => context.push('/house'),
+                      child: Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(Icons.home_work_outlined,
+                            color: Colors.white, size: 20),
+                      ),
                     ),
                   ],
                 ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  color: AppTheme.accent,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  'v${UpdateChecker.currentVersion}',
-                  style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.white),
-                ),
-              ),
-            ],
-          ),
-          if (user != null) ...[
-            const SizedBox(height: 12),
-            const Divider(color: Colors.white24, height: 1),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                const Icon(Icons.shield_outlined,
-                    color: Colors.white54, size: 14),
-                const SizedBox(width: 6),
-                Text(
-                  'End-to-end shifrlangan • 100% offline',
-                  style: GoogleFonts.inter(
-                      fontSize: 11, color: Colors.white54),
-                ),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => ref.read(authFlowProvider.notifier).logout(),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.red.withOpacity(0.25),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                          color: Colors.red.withOpacity(0.4), width: 1),
+
+                const SizedBox(height: 20),
+
+                // ── Avatar ──────────────────────────────────────────────
+                Stack(
+                  alignment: Alignment.bottomRight,
+                  children: [
+                    Container(
+                      width: 88,
+                      height: 88,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.15),
+                        border: Border.all(color: Colors.white, width: 2.5),
+                      ),
+                      child: ClipOval(
+                        child: user?.avatarUrl != null
+                            ? Image.network(
+                                user!.avatarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) =>
+                                    _defaultAvatar(user.displayName),
+                              )
+                            : _defaultAvatar(user?.displayName),
+                      ),
                     ),
-                    child: Text(
-                      'Chiqish',
-                      style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.red[200]),
+                    // Online / verified badge
+                    Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        color: AppTheme.accent,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                      ),
+                      child: const Icon(Icons.check,
+                          size: 12, color: Colors.white),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // ── Name ────────────────────────────────────────────────
+                Text(
+                  user?.displayName ?? 'HisobKit',
+                  style: GoogleFonts.sora(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+
+                // ── Email ───────────────────────────────────────────────
+                Text(
+                  user?.maskedEmail ?? 'Shaxsiy moliya ilovasi',
+                  style: GoogleFonts.inter(
+                      fontSize: 13, color: Colors.white60),
+                  textAlign: TextAlign.center,
+                ),
+
+                const SizedBox(height: 16),
+
+                // ── Stats row ───────────────────────────────────────────
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    _StatChip(
+                      icon: Icons.shield_outlined,
+                      label: 'AES-256',
+                    ),
+                    const SizedBox(width: 10),
+                    _StatChip(
+                      icon: Icons.wifi_off_outlined,
+                      label: 'Offline',
+                    ),
+                    const SizedBox(width: 10),
+                    _StatChip(
+                      icon: Icons.new_releases_outlined,
+                      label: 'v${UpdateChecker.currentVersion}',
+                    ),
+                  ],
+                ),
+
+                // ── Logout ──────────────────────────────────────────────
+                if (user != null) ...[
+                  const SizedBox(height: 16),
+                  const Divider(color: Colors.white12),
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: () => ref.read(authFlowProvider.notifier).logout(),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.logout,
+                            size: 15, color: Colors.red[300]),
+                        const SizedBox(width: 6),
+                        Text(
+                          'Chiqish',
+                          style: GoogleFonts.inter(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.red[300]),
+                        ),
+                      ],
                     ),
                   ),
-                ),
+                ],
               ],
             ),
-          ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _defaultAvatar(String? name) {
+    final initials = (name?.isNotEmpty == true)
+        ? name!.trim().split(' ').map((w) => w[0]).take(2).join().toUpperCase()
+        : 'H';
+    return Container(
+      color: AppTheme.accent.withOpacity(0.3),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: GoogleFonts.sora(
+            fontSize: 30, fontWeight: FontWeight.w700, color: Colors.white),
+      ),
+    );
+  }
+}
+
+class _StatChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  const _StatChip({required this.icon, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.10),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: Colors.white70),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+                color: Colors.white),
+          ),
         ],
       ),
     );

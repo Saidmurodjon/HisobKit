@@ -25,7 +25,7 @@
 
 | Versiya | Hajm | Talab |
 |---------|------|-------|
-| [⬇ Oxirgi APK](https://github.com/Saidmurodjon/HisobKit/releases/latest) | ~25 MB | Android 6.0+ |
+| [⬇ Oxirgi APK](https://github.com/Saidmurodjon/HisobKit/releases/latest) | ~94 MB | Android 6.0+ |
 
 **O'rnatish:**
 1. Yuqoridagi havoladan `HisobKit-vX.X.X.apk` ni yuklab oling

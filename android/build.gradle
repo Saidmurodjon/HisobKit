@@ -13,13 +13,15 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
-// Force compileSdk 36 for all Android library subprojects (plugins)
-// Fixes android:attr/lStar not found from sqlcipher_flutter_libs
-// and ensures compatibility with plugins requiring SDK 35/36
-subprojects {
-    project.plugins.withId("com.android.library") {
-        project.android {
-            compileSdkVersion 36
+// Force compileSdk 34 for library subprojects.
+// gradle.beforeProject registers afterEvaluate BEFORE each project is evaluated,
+// so the callback fires AFTER the library sets its own compileSdkVersion (28)
+// but BEFORE AGP locks the value — giving us the last word.
+// Fixes "android:attr/lStar not found" from sqlcipher_flutter_libs 0.5.x.
+gradle.beforeProject { proj ->
+    proj.afterEvaluate {
+        if (proj.plugins.hasPlugin("com.android.library")) {
+            proj.android.compileSdkVersion 34
         }
     }
 }

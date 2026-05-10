@@ -3,7 +3,8 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
-const String _currentVersion = '1.2.2';
+// ⚠️ Bu versiyani har release da pubspec.yaml bilan birga yangilang!
+const String _currentVersion = '1.3.3';
 const String _repoOwner = 'Saidmurodjon';
 const String _repoName = 'HisobKit';
 
@@ -93,9 +94,21 @@ class UpdateChecker {
       final total = response.contentLength ?? 0;
       int received = 0;
 
-      final dir = await getTemporaryDirectory();
-      final filePath = '${dir.path}/hisobkit_update.apk';
+      // Android 10+ da temp papkadan APK o'rnatish bloklanadi.
+      // getExternalStorageDirectory → /sdcard/Android/data/... → FileProvider orqali
+      // agar external bo'lmasa, applicationDocumentsDirectory ishlatiladi.
+      Directory dir;
+      try {
+        dir = (await getExternalStorageDirectory()) ??
+            await getApplicationDocumentsDirectory();
+      } catch (_) {
+        dir = await getTemporaryDirectory();
+      }
+      final filePath = '${dir.path}/HisobKit-update.apk';
       final file = File(filePath);
+      // Avvalgi faylni o'chirish
+      if (await file.exists()) await file.delete();
+
       final sink = file.openWrite();
 
       await response.stream.forEach((chunk) {
@@ -114,6 +127,9 @@ class UpdateChecker {
       return null;
     }
   }
+
+  /// APK o'rnatish uchun MIME type qaytaradi
+  static String get apkMimeType => 'application/vnd.android.package-archive';
 
   /// Returns true if [remote] > [current] using semver comparison.
   static bool _isVersionNewer(String remote, String current) {

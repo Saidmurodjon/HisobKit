@@ -13,6 +13,8 @@ import '../../core/providers/settings_provider.dart';
 import '../transactions/transaction_providers.dart';
 import '../budgets/budget_providers.dart';
 import '../debts/debt_providers.dart';
+import '../auth/providers/auth_flow_provider.dart';
+import '../auth/models/auth_state.dart' show AuthFlowSuccess;
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -70,6 +72,8 @@ class _HeroBalanceCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final accountsAsync = ref.watch(accountsStreamProvider);
+    final authState = ref.watch(authFlowProvider);
+    final user = authState is AuthFlowSuccess ? authState.user : null;
 
     return Container(
       width: double.infinity,
@@ -89,6 +93,48 @@ class _HeroBalanceCard extends ConsumerWidget {
             children: [
               Row(
                 children: [
+                  // ── Profil avatar (chap burchak) ─────────────────────
+                  GestureDetector(
+                    onTap: () => context.push('/settings'),
+                    child: Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.white.withOpacity(0.15),
+                            border: Border.all(
+                                color: Colors.white.withOpacity(0.5), width: 1.5),
+                          ),
+                          child: ClipOval(
+                            child: user?.avatarUrl != null
+                                ? Image.network(user!.avatarUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) =>
+                                        _avatarInitials(user.displayName))
+                                : _avatarInitials(user?.displayName),
+                          ),
+                        ),
+                        // Logged-in dot
+                        if (user != null)
+                          Positioned(
+                            right: 0, bottom: 0,
+                            child: Container(
+                              width: 10, height: 10,
+                              decoration: BoxDecoration(
+                                color: AppTheme.accent,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                    color: AppTheme.primary, width: 1.5),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 10),
                   Text(
                     l10n.appTitle,
                     style: GoogleFonts.sora(
@@ -141,6 +187,24 @@ class _HeroBalanceCard extends ConsumerWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _avatarInitials(String? name) {
+    final initials = (name != null && name.trim().isNotEmpty)
+        ? name.trim().split(' ').map((w) => w[0]).take(2).join().toUpperCase()
+        : 'H';
+    return Container(
+      color: AppTheme.accent.withOpacity(0.3),
+      alignment: Alignment.center,
+      child: Text(
+        initials,
+        style: GoogleFonts.sora(
+          fontSize: 15,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
         ),
       ),
     );

@@ -1301,8 +1301,27 @@ class _UpdateDialogState extends State<_UpdateDialog> {
     }
 
     setState(() => _installing = true);
-    await OpenFile.open(path);
-    if (mounted) Navigator.pop(context);
+    // Android 7+ da APK o'rnatish uchun explicit MIME type zarur.
+    // FileProvider file_paths.xml da external-files-path ro'yxatga olingan.
+    final result = await OpenFile.open(
+      path,
+      type: UpdateChecker.apkMimeType,
+    );
+    // Agar open_file ishlamasa, xato ko'rsat
+    if (mounted) {
+      if (result.type != ResultType.done) {
+        setState(() {
+          _progress = -1;
+          _installing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('O\'rnatib bo\'lmadi: ${result.message}'),
+          backgroundColor: Colors.red,
+        ));
+      } else {
+        Navigator.pop(context);
+      }
+    }
   }
 
   @override

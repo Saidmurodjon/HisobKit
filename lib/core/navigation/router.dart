@@ -286,7 +286,7 @@ class _MainShell extends StatelessWidget {
     if (location.startsWith('/transactions')) return 1;
     if (location.startsWith('/reports')) return 2;
     if (location.startsWith('/debts')) return 3;
-    if (location.startsWith('/settings')) return 4;
+    if (location.startsWith('/house')) return 4;
     return 0;
   }
 
@@ -305,7 +305,7 @@ class _MainShell extends StatelessWidget {
             case 1: context.go('/transactions'); break;
             case 2: context.go('/reports'); break;
             case 3: context.go('/debts'); break;
-            case 4: context.go('/settings'); break;
+            case 4: context.go('/house'); break;
           }
         },
         destinations: [
@@ -330,9 +330,9 @@ class _MainShell extends StatelessWidget {
             label: 'Qarz',
           ),
           const NavigationDestination(
-            icon: Icon(Icons.person_outline),
-            selectedIcon: Icon(Icons.person),
-            label: 'Profil',
+            icon: Icon(Icons.home_work_outlined),
+            selectedIcon: Icon(Icons.home_work),
+            label: 'Uy',
           ),
         ],
       ),

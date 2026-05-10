@@ -101,7 +101,14 @@ auth.post('/google/verify', async (c) => {
     accessToken,
     refreshToken,
     isNewUser,
-    user: { id: user.id, displayName: user.display_name, email: user.email, avatarUrl: user.avatar_url },
+    user: {
+      id: user.id,
+      displayName: user.display_name,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      providers: ['google'],
+      createdAt: user.created_at,
+    },
   });
 });
 
@@ -185,7 +192,14 @@ auth.post('/email/verify-otp', async (c) => {
     accessToken,
     refreshToken,
     isNewUser,
-    user: { id: user.id, displayName: user.display_name, email: user.email, avatarUrl: user.avatar_url },
+    user: {
+      id: user.id,
+      displayName: user.display_name,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      providers: ['email'],
+      createdAt: user.created_at,
+    },
   });
 });
 

@@ -708,90 +708,93 @@ class _ProfileHeader extends ConsumerWidget {
 
                 const SizedBox(height: 20),
 
-                // ── Avatar ──────────────────────────────────────────────
-                Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    Container(
-                      width: 88,
-                      height: 88,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.white.withOpacity(0.15),
-                        border: Border.all(color: Colors.white, width: 2.5),
-                      ),
-                      child: ClipOval(
-                        child: user?.avatarUrl != null
-                            ? Image.network(
-                                user!.avatarUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) =>
-                                    _defaultAvatar(user.displayName),
-                              )
-                            : _defaultAvatar(user?.displayName),
-                      ),
-                    ),
-                    // Online / verified badge
-                    Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: AppTheme.accent,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                      child: const Icon(Icons.check,
-                          size: 12, color: Colors.white),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 12),
-
-                // ── Name ────────────────────────────────────────────────
-                Text(
-                  user?.displayName ?? 'HisobKit',
-                  style: GoogleFonts.sora(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 4),
-
-                // ── Email ───────────────────────────────────────────────
-                Text(
-                  user?.maskedEmail ?? 'Shaxsiy moliya ilovasi',
-                  style: GoogleFonts.inter(
-                      fontSize: 13, color: Colors.white60),
-                  textAlign: TextAlign.center,
-                ),
-
-                const SizedBox(height: 16),
-
-                // ── Stats row ───────────────────────────────────────────
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    _StatChip(
-                      icon: Icons.shield_outlined,
-                      label: 'AES-256',
-                    ),
-                    const SizedBox(width: 10),
-                    _StatChip(
-                      icon: Icons.wifi_off_outlined,
-                      label: 'Offline',
-                    ),
-                    const SizedBox(width: 10),
-                    _StatChip(
-                      icon: Icons.new_releases_outlined,
-                      label: 'v${UpdateChecker.currentVersion}',
-                    ),
-                  ],
-                ),
-
-                // ── Logout ──────────────────────────────────────────────
                 if (user != null) ...[
+                  // ── LOGGED IN: Avatar + info ───────────────────────────
+                  Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      Container(
+                        width: 88,
+                        height: 88,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.15),
+                          border: Border.all(color: Colors.white, width: 2.5),
+                        ),
+                        child: ClipOval(
+                          child: user.avatarUrl != null
+                              ? Image.network(
+                                  user.avatarUrl!,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) =>
+                                      _defaultAvatar(user.displayName),
+                                )
+                              : _defaultAvatar(user.displayName),
+                        ),
+                      ),
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: AppTheme.accent,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                        child: const Icon(Icons.check,
+                            size: 12, color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    user.displayName.isNotEmpty ? user.displayName : 'Foydalanuvchi',
+                    style: GoogleFonts.sora(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    user.maskedEmail,
+                    style: GoogleFonts.inter(
+                        fontSize: 13, color: Colors.white60),
+                    textAlign: TextAlign.center,
+                  ),
+                  // Provider chip (email / google)
+                  if (user.providers.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.10),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        user.providers.contains('google')
+                            ? '🔵 Google orqali kirgan'
+                            : '📧 Email orqali kirgan',
+                        style: GoogleFonts.inter(
+                            fontSize: 11, color: Colors.white70),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: 16),
+                  // Stats
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _StatChip(icon: Icons.shield_outlined, label: 'AES-256'),
+                      const SizedBox(width: 10),
+                      _StatChip(icon: Icons.wifi_off_outlined, label: 'Offline'),
+                      const SizedBox(width: 10),
+                      _StatChip(
+                          icon: Icons.new_releases_outlined,
+                          label: 'v${UpdateChecker.currentVersion}'),
+                    ],
+                  ),
+                  // Logout
                   const SizedBox(height: 16),
                   const Divider(color: Colors.white12),
                   const SizedBox(height: 8),
@@ -800,8 +803,7 @@ class _ProfileHeader extends ConsumerWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.logout,
-                            size: 15, color: Colors.red[300]),
+                        Icon(Icons.logout, size: 15, color: Colors.red[300]),
                         const SizedBox(width: 6),
                         Text(
                           'Chiqish',
@@ -812,6 +814,70 @@ class _ProfileHeader extends ConsumerWidget {
                         ),
                       ],
                     ),
+                  ),
+                ] else ...[
+                  // ── NOT LOGGED IN: Guest state ─────────────────────────
+                  Container(
+                    width: 88,
+                    height: 88,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.12),
+                      border: Border.all(
+                          color: Colors.white.withOpacity(0.3), width: 2),
+                    ),
+                    child: const Icon(Icons.person_outline,
+                        color: Colors.white54, size: 40),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Tizimga kirilmagan',
+                    style: GoogleFonts.sora(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Sinxronizatsiya va xavfsiz zaxira uchun kiring',
+                    style: GoogleFonts.inter(
+                        fontSize: 12, color: Colors.white54),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  // Kirish tugmasi
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: () => context.push('/auth/welcome'),
+                      icon: const Icon(Icons.login, size: 18),
+                      label: Text(
+                        'Kirish yoki Ro\'yxatdan o\'tish',
+                        style: GoogleFonts.sora(
+                            fontWeight: FontWeight.w600, fontSize: 14),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTheme.accent,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14)),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Stats (ham ko'rinadigan bo'lsin)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _StatChip(icon: Icons.shield_outlined, label: 'AES-256'),
+                      const SizedBox(width: 10),
+                      _StatChip(icon: Icons.wifi_off_outlined, label: 'Offline'),
+                      const SizedBox(width: 10),
+                      _StatChip(
+                          icon: Icons.new_releases_outlined,
+                          label: 'v${UpdateChecker.currentVersion}'),
+                    ],
                   ),
                 ],
               ],

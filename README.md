@@ -178,7 +178,7 @@ Pull request lar xush kelibdi! Katta o'zgartirishlar uchun avval [issue oching](
 
 ## 📄 Litsenziya
 
-[MIT](LICENSE) © 2024-2026 [Saidmurod Toshmatov](https://github.com/Saidmurodjon)
+[MIT](LICENSE) © 2024-2026 [Saidmurodjon Khamdamov](https://github.com/Saidmurodjon)
 
 ---
 

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 // ⚠️ Bu versiyani har release da pubspec.yaml bilan birga yangilang!
-const String _currentVersion = '1.3.5';
+const String _currentVersion = '1.3.9';
 const String _repoOwner = 'Saidmurodjon';
 const String _repoName = 'HisobKit';
 
@@ -94,13 +94,12 @@ class UpdateChecker {
       final total = response.contentLength ?? 0;
       int received = 0;
 
-      // Android 10+ da temp papkadan APK o'rnatish bloklanadi.
-      // getExternalStorageDirectory → /sdcard/Android/data/... → FileProvider orqali
-      // agar external bo'lmasa, applicationDocumentsDirectory ishlatiladi.
+      // Android 8+ da FileProvider orqali APK o'rnatish uchun
+      // getApplicationDocumentsDirectory ishlatiladi (files-path XML da ro'yxatda).
+      // getExternalStorageDirectory bloklanishi mumkin, shuning uchun docs dir preferred.
       Directory dir;
       try {
-        dir = (await getExternalStorageDirectory()) ??
-            await getApplicationDocumentsDirectory();
+        dir = await getApplicationDocumentsDirectory();
       } catch (_) {
         dir = await getTemporaryDirectory();
       }

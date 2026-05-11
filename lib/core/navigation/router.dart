@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import '../l10n/app_localizations.dart';
 
 import '../../features/auth/lock_screen.dart';
 import '../../features/auth/onboarding_screen.dart';
@@ -31,9 +30,9 @@ import '../../features/house/house_sync_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../../features/auth/screens/welcome_screen.dart';
-import '../../features/auth/screens/email_input_screen.dart';
 import '../../features/auth/screens/otp_verify_screen.dart';
 import '../../features/auth/screens/profile_setup_screen.dart';
+import '../../features/auth/splash_screen.dart';
 
 // ── Router Notifier ───────────────────────────────────────────────────────────
 // ChangeNotifier that listens to auth + settings and notifies the GoRouter
@@ -57,7 +56,10 @@ class _RouterNotifier extends ChangeNotifier {
     final authState = _ref.read(authProvider);
 
     final settings = settingsAsync.value;
-    if (settings == null) return null; // Still loading — stay put
+    // Settings still loading → show splash (not the white DashboardScreen)
+    if (settings == null) {
+      return state.matchedLocation == '/splash' ? null : '/splash';
+    }
 
     final onboardingDone = settings.onboardingComplete;
     final isOnboarding = state.matchedLocation == '/onboarding';
@@ -90,10 +92,16 @@ final routerProvider = Provider<GoRouter>((ref) {
   final notifier = ref.watch(_routerNotifierProvider);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
     refreshListenable: notifier,
     redirect: notifier.redirect,
     routes: [
+      // Splash — shown while settings/database load
+      GoRoute(
+        path: '/splash',
+        builder: (ctx, _) => const SplashScreen(),
+      ),
+
       // Onboarding
       GoRoute(
         path: '/onboarding',
@@ -110,10 +118,6 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/auth/welcome',
         builder: (ctx, _) => const WelcomeScreen(),
-      ),
-      GoRoute(
-        path: '/auth/email',
-        builder: (ctx, _) => const EmailInputScreen(),
       ),
       GoRoute(
         path: '/auth/otp',

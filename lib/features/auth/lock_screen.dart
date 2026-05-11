@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../core/providers/auth_provider.dart';
 import '../../core/providers/settings_provider.dart';
@@ -79,10 +80,17 @@ class _LockScreenState extends ConsumerState<LockScreen>
   Future<void> _tryUnlock() async {
     final pinStr = _pin.join();
     if (mounted) setState(() => _isLoading = true);
-    final success =
-        await ref.read(authProvider.notifier).authenticateWithPin(pinStr);
-    if (!mounted) return;
-    if (success) return; // router redirect handles navigation
+    try {
+      final success =
+          await ref.read(authProvider.notifier).authenticateWithPin(pinStr);
+      if (!mounted) return;
+      if (success) {
+        context.go('/');
+        return;
+      }
+    } catch (_) {
+      if (!mounted) return;
+    }
     HapticFeedback.heavyImpact();
     _shakeController.forward(from: 0);
     setState(() {

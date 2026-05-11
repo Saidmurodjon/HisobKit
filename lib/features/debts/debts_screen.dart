@@ -401,7 +401,7 @@ class DebtDetailScreen extends ConsumerWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.verified_outlined),
-                tooltip: 'Islomiy Shartnoma',
+                tooltip: 'Qarz Shartnomasi',
                 onPressed: () => context.push(
                   '/debts/${debt.id}/contract',
                   extra: debt,

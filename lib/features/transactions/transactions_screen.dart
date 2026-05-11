@@ -148,6 +148,18 @@ class _DateRangeChips extends StatelessWidget {
               onSelected: (_) => ref
                   .read(_selectedRangeProvider.notifier)
                   .state = e.value,
+              selectedColor: AppTheme.primary,
+              backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+              labelStyle: TextStyle(
+                color: isSelected
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.onSurface,
+                fontWeight:
+                    isSelected ? FontWeight.w600 : FontWeight.normal,
+              ),
+              side: BorderSide(
+                color: isSelected ? AppTheme.primary : Colors.transparent,
+              ),
             ),
           );
         }).toList(),

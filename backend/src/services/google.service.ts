@@ -7,13 +7,27 @@ export async function verifyGoogleToken(
   try {
     const url = `https://oauth2.googleapis.com/tokeninfo?id_token=${idToken}`;
     const res = await fetch(url);
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error('[Google] tokeninfo failed:', res.status);
+      return null;
+    }
 
     const payload = await res.json() as Record<string, string>;
 
-    if (payload['aud'] !== clientId) return null;
-    if (Number(payload['exp']) < Math.floor(Date.now() / 1000)) return null;
-    if (payload['email_verified'] !== 'true') return null;
+    // aud must match our web client ID (or azp for Android clients)
+    const audMatch = payload['aud'] === clientId || payload['azp'] === clientId;
+    if (!audMatch) {
+      console.error('[Google] aud mismatch. aud:', payload['aud'], 'azp:', payload['azp'], 'expected:', clientId);
+      return null;
+    }
+    if (Number(payload['exp']) < Math.floor(Date.now() / 1000)) {
+      console.error('[Google] token expired');
+      return null;
+    }
+    if (payload['email_verified'] !== 'true') {
+      console.error('[Google] email not verified');
+      return null;
+    }
 
     return {
       googleId: payload['sub'],
@@ -21,7 +35,8 @@ export async function verifyGoogleToken(
       name: payload['name'] ?? payload['email'],
       avatarUrl: payload['picture'] ?? null,
     };
-  } catch {
+  } catch (e) {
+    console.error('[Google] exception:', e);
     return null;
   }
 }

@@ -36,7 +36,10 @@ auth.post('/google/init', async (c) => {
   const otp = generateOtp();
   const ttl = parseInt(c.env.OTP_TTL);
   await saveOtp(gUser.email, otp, c.env.AUTH_KV, ttl);
-  await sendOtpEmail(gUser.email, otp, c.env.RESEND_API_KEY, c.env.RESEND_FROM_EMAIL);
+  const emailResult = await sendOtpEmail(gUser.email, otp, c.env.RESEND_API_KEY, c.env.RESEND_FROM_EMAIL);
+  if (!emailResult.ok) {
+    return c.json({ error: 'Email yuborib bo\'lmadi.', detail: emailResult.error }, 502);
+  }
 
   return c.json({
     success: true,
@@ -135,7 +138,10 @@ auth.post('/email/send-otp', async (c) => {
   const otp = generateOtp();
   const ttl = parseInt(c.env.OTP_TTL);
   await saveOtp(email, otp, c.env.AUTH_KV, ttl);
-  await sendOtpEmail(email, otp, c.env.RESEND_API_KEY, c.env.RESEND_FROM_EMAIL);
+  const emailResult = await sendOtpEmail(email, otp, c.env.RESEND_API_KEY, c.env.RESEND_FROM_EMAIL);
+  if (!emailResult.ok) {
+    return c.json({ error: 'Email yuborib bo\'lmadi.', detail: emailResult.error }, 502);
+  }
 
   return c.json({ success: true, expiresIn: ttl });
 });
@@ -149,10 +155,16 @@ auth.post('/email/verify-otp', async (c) => {
     deviceName?: string;
   }>();
 
-  const maxAttempts = parseInt(c.env.OTP_MAX_ATTEMPTS);
-  const result = await verifyOtp(email, otp, c.env.AUTH_KV, maxAttempts);
-  if (!result.success) {
-    return c.json({ error: otpErrorMessage(result.reason), code: result.reason, attemptsLeft: result.attemptsLeft }, 400);
+  // Check if this email was already pre-verified (profile setup second step)
+  const preVerified = await c.env.AUTH_KV.get(`pre_verified:${email}`);
+
+  if (!preVerified) {
+    // Normal flow: verify OTP
+    const maxAttempts = parseInt(c.env.OTP_MAX_ATTEMPTS);
+    const result = await verifyOtp(email, otp, c.env.AUTH_KV, maxAttempts);
+    if (!result.success) {
+      return c.json({ error: otpErrorMessage(result.reason), code: result.reason, attemptsLeft: result.attemptsLeft }, 400);
+    }
   }
 
   let user = await c.env.DB.prepare(
@@ -164,8 +176,12 @@ auth.post('/email/verify-otp', async (c) => {
 
   if (!user) {
     if (!displayName) {
+      // Save pre-verified status so next call with displayName works
+      await c.env.AUTH_KV.put(`pre_verified:${email}`, '1', { expirationTtl: 600 });
       return c.json({ error: 'Ism kiritilmagan', code: 'needs_profile', isNewUser: true }, 400);
     }
+    // Delete pre-verified key after successful use
+    await c.env.AUTH_KV.delete(`pre_verified:${email}`);
     const userId = uuid();
     await c.env.DB.prepare(
       `INSERT INTO users (id, email, display_name, last_seen_at) VALUES (?, ?, ?, ?)`,
@@ -175,6 +191,8 @@ auth.post('/email/verify-otp', async (c) => {
     ).bind(uuid(), userId, email).run();
     user = { id: userId, email, display_name: displayName, avatar_url: null, created_at: now };
   } else {
+    // Clean up pre_verified key if any, then update last_seen_at
+    await c.env.AUTH_KV.delete(`pre_verified:${email}`);
     await c.env.DB.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').bind(now, user.id).run();
   }
 
@@ -215,7 +233,10 @@ auth.post('/resend-otp', async (c) => {
   const otp = generateOtp();
   const ttl = parseInt(c.env.OTP_TTL);
   await saveOtp(email, otp, c.env.AUTH_KV, ttl);
-  await sendOtpEmail(email, otp, c.env.RESEND_API_KEY, c.env.RESEND_FROM_EMAIL);
+  const emailResult = await sendOtpEmail(email, otp, c.env.RESEND_API_KEY, c.env.RESEND_FROM_EMAIL);
+  if (!emailResult.ok) {
+    return c.json({ error: 'Email yuborib bo\'lmadi.', detail: emailResult.error }, 502);
+  }
 
   return c.json({ success: true, expiresIn: ttl });
 });

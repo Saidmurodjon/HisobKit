@@ -45,7 +45,7 @@ export async function sendOtpEmail(
   otp: string,
   apiKey: string,
   from: string,
-): Promise<boolean> {
+): Promise<{ ok: boolean; error?: string }> {
   try {
     const res = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -60,8 +60,14 @@ export async function sendOtpEmail(
         html: emailTemplate(otp),
       }),
     });
-    return res.ok;
-  } catch {
-    return false;
+    if (!res.ok) {
+      const body = await res.text().catch(() => '');
+      console.error(`[Resend] ${res.status} ${res.statusText} — ${body}`);
+      return { ok: false, error: `Resend ${res.status}: ${body}` };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error('[Resend] fetch error:', err);
+    return { ok: false, error: String(err) };
   }
 }

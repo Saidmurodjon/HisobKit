@@ -232,7 +232,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/debts/:id/contract',
         builder: (ctx, state) {
           final debt = state.extra as Debt;
-          return IslamicContractScreen(debt: debt);
+          return DebtContractScreen(debt: debt);
         },
       ),
 

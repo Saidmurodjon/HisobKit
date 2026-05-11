@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_flow_provider.dart';
+import '../providers/onboarding_page_provider.dart';
 import '../models/auth_state.dart';
 import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/settings_provider.dart';
 import '../../../core/theme/app_theme.dart';
 
 class OtpVerifyScreen extends ConsumerStatefulWidget {
@@ -97,11 +99,18 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
 
     ref.listen<AuthFlowState>(authFlowProvider, (prev, next) {
       if (next is AuthSuccess) {
-        // Cloud auth succeeded → also unlock device lock so no second login
         ref.read(authProvider.notifier).unlock();
-        context.go('/');
+        final onboardingDone =
+            ref.read(appSettingsProvider).value?.onboardingComplete ?? false;
+        if (!onboardingDone) {
+          // Return to onboarding at security page (page 2)
+          ref.read(onboardingPageProvider.notifier).state = 2;
+          context.go('/onboarding');
+        } else {
+          context.go('/');
+        }
       }
-      if (next is AuthNeedsProfile) context.go('/auth/profile');
+      if (next is AuthNeedsProfile) context.push('/auth/profile');
       if (next is AuthError) _clearInputs();
     });
 
@@ -115,7 +124,14 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () {
             notifier.goBack();
-            context.go('/auth/welcome');
+            final onboardingDone =
+                ref.read(appSettingsProvider).value?.onboardingComplete ??
+                    false;
+            if (!onboardingDone) {
+              context.go('/onboarding');
+            } else {
+              context.go('/auth/welcome');
+            }
           },
         ),
         title: Text('Tasdiqlash kodi',

@@ -29,9 +29,6 @@ import '../../features/house/house_members_screen.dart';
 import '../../features/house/house_sync_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
-import '../../features/auth/providers/auth_flow_provider.dart';
-import '../../features/auth/providers/cloud_auth_skip_provider.dart';
-import '../../features/auth/models/auth_state.dart';
 import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/otp_verify_screen.dart';
 import '../../features/auth/screens/profile_setup_screen.dart';
@@ -50,14 +47,6 @@ class _RouterNotifier extends ChangeNotifier {
     );
     _ref.listen<AuthState>(
       authProvider,
-      (_, __) => notifyListeners(),
-    );
-    _ref.listen<AuthFlowState>(
-      authFlowProvider,
-      (_, __) => notifyListeners(),
-    );
-    _ref.listen<bool>(
-      cloudAuthSkippedProvider,
       (_, __) => notifyListeners(),
     );
   }
@@ -79,26 +68,14 @@ class _RouterNotifier extends ChangeNotifier {
       return isOnboarding ? null : '/onboarding';
     }
 
-    // Onboarding complete — if still on onboarding page, go to cloud auth (if not yet logged in)
-    if (isOnboarding) {
-      final cloudAuth = _ref.read(authFlowProvider);
-      return cloudAuth is AuthSuccess ? '/' : '/auth/welcome';
-    }
+    // Onboarding complete — if still on onboarding page, go to main app
+    if (isOnboarding) return '/';
 
     final isLocked = authState == AuthState.locked;
     final isLockScreen = state.matchedLocation == '/lock';
 
     if (isLocked && !isLockScreen) return '/lock';
     if (!isLocked && isLockScreen) return '/';
-
-    // Cloud auth check — redirect to welcome if not logged in and not skipped
-    // Applies to ALL users (new + existing) when they reach the dashboard
-    final cloudAuth = _ref.read(authFlowProvider);
-    final cloudSkipped = _ref.read(cloudAuthSkippedProvider);
-    final isAuthScreen = state.matchedLocation.startsWith('/auth/');
-    if (!isLocked && !isAuthScreen && cloudAuth is! AuthSuccess && !cloudSkipped) {
-      return '/auth/welcome';
-    }
 
     return null;
   }

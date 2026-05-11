@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Claude_in_Chrome__computer",
+      "PowerShell(keytool -list -v -keystore \"$env:USERPROFILE\\\\.android\\\\debug.keystore\" -alias androiddebugkey -storepass android -keypass android 2>&1 | Select-String \"SHA1\")",
+      "mcp__Claude_in_Chrome__navigate",
+      "Bash(git add *)",
+      "Bash(git commit -m 'chore: fix author name to Saidmurodjon Khamdamov *)",
+      "Bash(git push *)",
+      "Bash(git commit -m 'chore: bump version to 1.3.1+4 *)",
+      "Bash(git tag *)",
+      "Bash(flutter analyze *)",
+      "Bash(flutter build *)",
+      "Bash(git commit -m ' *)",
+      "Bash(curl -s -X POST https://hisobkit-api.saidmurodjon1020.workers.dev/auth/email/send-otp -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"test@test.com\\\\\"}\")",
+      "Bash(curl -s -X POST https://hisobkit-api.saidmurodjon1020.workers.dev/auth/email/send-otp -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"saidmurodjon1020@gmail.com\\\\\"}\")",
+      "Bash(npx wrangler *)",
+      "Bash(curl -s -X POST https://hisobkit-api.saidmurodjon1020.workers.dev/auth/email/send-otp -H \"Content-Type: application/json\" -d '{\"email\":\"test@example.com\"}')",
+      "Bash(keytool -list -v -keystore android/app/hisobkit-release.keystore -alias hisobkit -storepass hisobkit123)",
+      "Bash(keytool -list -v -keystore hisobkit-release.keystore -alias hisobkit -storepass \"HisobKit2024!\" -keypass \"HisobKit2024!\")",
+      "Bash(where keytool *)",
+      "Bash(java -version)",
+      "Bash(\"/c/Program Files/Android/Android Studio/jbr/bin/keytool\" -list -v -keystore \"C:\\\\Users\\\\Saidmurod\\\\Desktop\\\\HisobKit\\\\android\\\\app\\\\hisobkit-release.keystore\" -storepass \"HisobKit2024!\")",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "mcp__Claude_in_Chrome__browser_batch",
+      "Bash(grep -rn \"invalidate\\\\|ref.refresh\" \"C:\\\\Users\\\\Saidmurod\\\\Desktop\\\\HisobKit\\\\lib\\\\features\\\\\" --include=\"*.dart\" 2>/dev/null | grep -v \".dart:.*//\\\\|test\" | head -20)",
+      "Bash(gh release *)"
+    ]
+  }
+}

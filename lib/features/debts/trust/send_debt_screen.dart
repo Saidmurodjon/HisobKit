@@ -180,8 +180,14 @@ class SendDebtScreen extends ConsumerWidget {
   Future<void> _signAndSend(
       BuildContext context, WidgetRef ref, AppLocalizations l10n) async {
     final signingService = ref.read(debtSigningServiceProvider);
+    final debtsAsync = ref.read(allDebtsProvider);
+    final debt = debtsAsync.value?.firstWhere((d) => d.id == debtId);
     try {
-      await signingService.signAsLender(debtId);
+      if (debt?.type == 'borrowed') {
+        await signingService.signAsBorrowerFirst(debtId);
+      } else {
+        await signingService.signAsLender(debtId);
+      }
       if (context.mounted) _showSyncSheet(context);
     } catch (e) {
       if (context.mounted) {

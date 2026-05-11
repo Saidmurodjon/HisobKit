@@ -142,6 +142,91 @@ class DebtSigningService {
     ));
   }
 
+  /// Borrower signs first (initiates debt request to lender).
+  /// No lender signature required since borrower is the initiator.
+  Future<void> signAsBorrowerFirst(int debtId) async {
+    final debt = await _db.debtsDao.getDebtById(debtId);
+    if (debt == null) throw Exception('Debt not found');
+
+    final myPk = await IdentityService.getMyPublicKey();
+    final hash = buildContentHash(debt);
+    final dataToSign = {'debt_id': debtId, 'hash': hash, 'role': 'borrower'};
+    final sig = await IdentityService.signData(dataToSign);
+
+    await _db.debtsDao.insertSignature(DebtSignaturesCompanion(
+      debtId: Value(debtId),
+      role: const Value('borrower'),
+      signerPublicKey: Value(myPk),
+      signature: Value(sig),
+    ));
+
+    await _db.debtsDao.updateStatus(
+      debtId,
+      status: 'pending',
+      contentHash: hash,
+      borrowerPublicKey: myPk,
+      expiresAt: DateTime.now().add(const Duration(days: 7)),
+    );
+
+    await _db.debtsDao.insertEvent(DebtEventsCompanion(
+      debtId: Value(debtId),
+      eventType: const Value('borrower_signed'),
+      actorPublicKey: Value(myPk),
+      eventData: Value(jsonEncode({'hash': hash})),
+    ));
+  }
+
+  /// Lender confirms a borrower-initiated request (no pre-existing lender signature needed).
+  Future<void> confirmAsLenderForBorrowerRequest(int debtId) async {
+    final debt = await _db.debtsDao.getDebtById(debtId);
+    if (debt == null) throw Exception('Debt not found');
+
+    final recalcHash = buildContentHash(debt);
+    if (debt.contentHash != null && debt.contentHash != recalcHash) {
+      throw TamperedDebtException(expected: debt.contentHash!, actual: recalcHash);
+    }
+
+    // Verify borrower signature
+    final sigs = await _db.debtsDao.getSignaturesForDebt(debtId);
+    final borrowerSig = sigs.where((s) => s.role == 'borrower').firstOrNull;
+    if (borrowerSig == null) {
+      throw InvalidSignatureException(role: 'borrower', publicKey: '');
+    }
+
+    final borrowerPk = debt.borrowerPublicKey ?? borrowerSig.signerPublicKey;
+    final dataToVerify = {'debt_id': debtId, 'hash': recalcHash, 'role': 'borrower'};
+    final valid = await IdentityService.verifySignature(
+      data: dataToVerify,
+      signature: borrowerSig.signature,
+      publicKey: borrowerPk,
+    );
+    if (!valid) throw InvalidSignatureException(role: 'borrower', publicKey: borrowerPk);
+
+    final myPk = await IdentityService.getMyPublicKey();
+    final dataToSign = {'debt_id': debtId, 'hash': recalcHash, 'role': 'lender'};
+    final sig = await IdentityService.signData(dataToSign);
+
+    await _db.debtsDao.insertSignature(DebtSignaturesCompanion(
+      debtId: Value(debtId),
+      role: const Value('lender'),
+      signerPublicKey: Value(myPk),
+      signature: Value(sig),
+    ));
+
+    await _db.debtsDao.updateStatus(
+      debtId,
+      status: 'confirmed',
+      lenderPublicKey: myPk,
+    );
+
+    await _db.debtsDao.insertEvent(DebtEventsCompanion(
+      debtId: Value(debtId),
+      eventType: const Value('confirmed'),
+      actorPublicKey: Value(myPk),
+      eventData: Value(jsonEncode({'hash': recalcHash})),
+    ));
+  }
+
   Future<void> rejectDebt(int debtId, String reason) async {
     final myPk = await IdentityService.getMyPublicKey();
     await _db.debtsDao.updateStatus(

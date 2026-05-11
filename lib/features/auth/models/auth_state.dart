@@ -4,67 +4,51 @@ sealed class AuthFlowState {
   const AuthFlowState();
 }
 
-class AuthFlowInitial extends AuthFlowState {
-  const AuthFlowInitial();
+class AuthInitial extends AuthFlowState {
+  const AuthInitial();
 }
 
-class AuthFlowLoading extends AuthFlowState {
-  const AuthFlowLoading();
+class AuthLoading extends AuthFlowState {
+  const AuthLoading();
 }
 
-class AuthFlowGoogleOtpPending extends AuthFlowState {
-  final String email;
-  final String maskedEmail;
-  final String name;
-  final String? avatarUrl;
-  final String idToken;
-  final int expiresIn;
-  const AuthFlowGoogleOtpPending({
+/// OTP sent — maskedEmail is e.g. "al***@gmail.com"
+class AuthOtpSent extends AuthFlowState {
+  final String email;        // full (lowercase, for API calls)
+  final String maskedEmail;  // display only
+  final int expiresIn;       // seconds, default 300
+  const AuthOtpSent({
     required this.email,
     required this.maskedEmail,
-    required this.name,
-    this.avatarUrl,
-    required this.idToken,
     required this.expiresIn,
   });
 }
 
-class AuthFlowEmailOtpPending extends AuthFlowState {
+class AuthNeedsProfile extends AuthFlowState {
   final String email;
-  final int expiresIn;
-  const AuthFlowEmailOtpPending({
-    required this.email,
-    required this.expiresIn,
-  });
+  const AuthNeedsProfile({required this.email});
 }
 
-class AuthFlowNeedsProfile extends AuthFlowState {
-  final String email;
-  final String? googleName;
-  final String? avatarUrl;
-  final String? idToken; // non-null = google flow
-  final String pendingOtp;
-  const AuthFlowNeedsProfile({
-    required this.email,
-    this.googleName,
-    this.avatarUrl,
-    this.idToken,
-    required this.pendingOtp,
-  });
-}
-
-class AuthFlowSuccess extends AuthFlowState {
+class AuthSuccess extends AuthFlowState {
   final UserModel user;
-  const AuthFlowSuccess({required this.user});
+  const AuthSuccess({required this.user});
 }
 
-class AuthFlowError extends AuthFlowState {
+class AuthError extends AuthFlowState {
   final String message;
   final String? code;
   final int? attemptsLeft;
-  const AuthFlowError({
+  const AuthError({
     required this.message,
     this.code,
     this.attemptsLeft,
   });
 }
+
+// ── Backward-compat aliases (for any code that still uses old names) ──────────
+typedef AuthFlowInitial = AuthInitial;
+typedef AuthFlowLoading = AuthLoading;
+typedef AuthFlowEmailOtpPending = AuthOtpSent;
+typedef AuthFlowNeedsProfile = AuthNeedsProfile;
+typedef AuthFlowSuccess = AuthSuccess;
+typedef AuthFlowError = AuthError;

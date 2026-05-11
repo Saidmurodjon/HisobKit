@@ -286,6 +286,29 @@ class _DebtCard extends ConsumerWidget {
                               style: const TextStyle(fontSize: 10)),
                           padding: EdgeInsets.zero,
                         ),
+                      if (!isLent && debt.status == 'draft')
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: InkWell(
+                            onTap: () => context.push('/debts/${debt.id}/send'),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: AppTheme.accent.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(6),
+                                border: Border.all(color: AppTheme.accent.withValues(alpha: 0.3)),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.send_outlined, size: 11, color: AppTheme.accent),
+                                  const SizedBox(width: 3),
+                                  Text('Yuborish', style: TextStyle(fontSize: 10, color: AppTheme.accent, fontWeight: FontWeight.w600)),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                 ],

@@ -131,6 +131,10 @@ class _AddTransactionScreenState
 
       if (mounted) {
         final l10n = AppLocalizations.of(context)!;
+        // Invalidate future providers so they refresh on next watch
+        ref.invalidate(monthlyTotalProvider);
+        ref.invalidate(recentTransactionsProvider);
+        ref.invalidate(accountsStreamProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text(l10n.savedSuccessfully)),

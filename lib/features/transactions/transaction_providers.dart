@@ -20,12 +20,12 @@ final recentTransactionsProvider =
   return db.transactionsDao.watchRecentTransactions(limit: 10);
 });
 
-// Transactions by date range
+// Transactions by date range (stream for real-time updates)
 final transactionsByRangeProvider =
-    FutureProvider.family<List<Transaction>, (DateTime, DateTime)>(
+    StreamProvider.family<List<Transaction>, (DateTime, DateTime)>(
         (ref, range) {
   final db = ref.watch(databaseProvider);
-  return db.transactionsDao.getTransactionsByDateRange(range.$1, range.$2);
+  return db.transactionsDao.watchTransactionsByDateRange(range.$1, range.$2);
 });
 
 // All transactions (paginated via stream for list screen)

@@ -29,6 +29,8 @@ import '../../features/house/house_members_screen.dart';
 import '../../features/house/house_sync_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
+import '../../features/auth/providers/auth_flow_provider.dart';
+import '../../features/auth/models/auth_state.dart';
 import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/otp_verify_screen.dart';
 import '../../features/auth/screens/profile_setup_screen.dart';
@@ -47,6 +49,10 @@ class _RouterNotifier extends ChangeNotifier {
     );
     _ref.listen<AuthState>(
       authProvider,
+      (_, __) => notifyListeners(),
+    );
+    _ref.listen<AuthFlowState>(
+      authFlowProvider,
       (_, __) => notifyListeners(),
     );
   }
@@ -68,8 +74,11 @@ class _RouterNotifier extends ChangeNotifier {
       return isOnboarding ? null : '/onboarding';
     }
 
-    // Onboarding complete — if still on onboarding page, go to home
-    if (isOnboarding) return '/';
+    // Onboarding complete — if still on onboarding page, go to cloud auth (if not yet logged in)
+    if (isOnboarding) {
+      final cloudAuth = _ref.read(authFlowProvider);
+      return cloudAuth is AuthSuccess ? '/' : '/auth/welcome';
+    }
 
     final isLocked = authState == AuthState.locked;
     final isLockScreen = state.matchedLocation == '/lock';

@@ -17,6 +17,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _pageController = PageController();
   int _page = 0;
+  bool _isFinishing = false;
 
   // Setup state
   String _selectedLanguage = 'uz';
@@ -67,14 +68,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   Future<void> _finish() async {
     // Validate PIN
     if (_pinController.text.length < 4) {
-      setState(() => _pinError = 'PIN must be at least 4 digits');
+      setState(() => _pinError = 'PIN kamida 4 ta raqam bo\'lsin');
       return;
     }
     if (_pinController.text != _confirmPinController.text) {
-      setState(() => _pinError = 'PINs do not match');
+      setState(() => _pinError = 'PIN kodlar mos kelmadi');
       return;
     }
-    setState(() => _pinError = null);
+    setState(() { _pinError = null; _isFinishing = true; });
 
     final settingsNotifier = ref.read(appSettingsProvider.notifier);
     final authNotifier = ref.read(authProvider.notifier);
@@ -88,6 +89,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     await settingsNotifier.setBiometrics(_biometricsEnabled);
 
     authNotifier.unlock();
+    // completeOnboarding triggers router → redirects to /auth/welcome (if not cloud-authed)
     await settingsNotifier.completeOnboarding();
   }
 
@@ -163,7 +165,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         Expanded(
                           child: OutlinedButton(
                             onPressed: _goBack,
-                            child: const Text('Back'),
+                            child: const Text('Orqaga'),
                           ),
                         )
                       else
@@ -172,8 +174,14 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       Expanded(
                         flex: 2,
                         child: FilledButton(
-                          onPressed: _goNext,
-                          child: Text(_page == 2 ? 'Boshlash' : 'Next'),
+                          onPressed: _isFinishing ? null : _goNext,
+                          child: _isFinishing && _page == 2
+                              ? const SizedBox(
+                                  width: 20, height: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white, strokeWidth: 2.5),
+                                )
+                              : Text(_page == 2 ? 'Boshlash' : 'Keyingi'),
                         ),
                       ),
                     ],

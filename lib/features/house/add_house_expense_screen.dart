@@ -76,7 +76,11 @@ class _AddHouseExpenseScreenState extends ConsumerState<AddHouseExpenseScreen> {
         );
       }
 
-      if (mounted) Navigator.pop(context);
+      if (mounted) {
+        // Invalidate settlement cache so it recalculates after new expense
+        ref.invalidate(settlementProvider(widget.groupId));
+        Navigator.pop(context);
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

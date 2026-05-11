@@ -217,8 +217,18 @@ class DebtVerificationScreen extends ConsumerWidget {
   Future<void> _confirmDebt(
       BuildContext context, WidgetRef ref, AppLocalizations l10n) async {
     final signingService = ref.read(debtSigningServiceProvider);
+    final debtsAsync = ref.read(allDebtsProvider);
+    final debt = debtsAsync.value?.firstWhere((d) => d.id == debtId);
+    // Borrower-initiated: has borrowerPublicKey but no lenderPublicKey
+    final isBorrowerInitiated = debt != null
+        && debt.borrowerPublicKey != null
+        && (debt.lenderPublicKey == null || debt.lenderPublicKey!.isEmpty);
     try {
-      await signingService.signAsBorrower(debtId);
+      if (isBorrowerInitiated) {
+        await signingService.confirmAsLenderForBorrowerRequest(debtId);
+      } else {
+        await signingService.signAsBorrower(debtId);
+      }
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(l10n.debtConfirmed)),

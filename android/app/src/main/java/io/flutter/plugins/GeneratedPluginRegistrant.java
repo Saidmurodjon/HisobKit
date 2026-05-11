@@ -31,6 +31,11 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin flutter_secure_storage, com.it_nomads.fluttersecurestorage.FlutterSecureStoragePlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new io.flutter.plugins.googlesignin.GoogleSignInPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin google_sign_in_android, io.flutter.plugins.googlesignin.GoogleSignInPlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new com.github.dart_lang.jni.JniPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin jni, com.github.dart_lang.jni.JniPlugin", e);
@@ -51,6 +56,11 @@ public final class GeneratedPluginRegistrant {
       Log.e(TAG, "Error registering plugin mobile_scanner, dev.steenbakker.mobile_scanner.MobileScannerPlugin", e);
     }
     try {
+      flutterEngine.getPlugins().add(new com.crazecoder.openfile.OpenFilePlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin open_file_android, com.crazecoder.openfile.OpenFilePlugin", e);
+    }
+    try {
       flutterEngine.getPlugins().add(new io.scer.pdfx.PdfxPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin pdfx, io.scer.pdfx.PdfxPlugin", e);
@@ -64,6 +74,11 @@ public final class GeneratedPluginRegistrant {
       flutterEngine.getPlugins().add(new eu.simonbinder.sqlite3_flutter_libs.Sqlite3FlutterLibsPlugin());
     } catch (Exception e) {
       Log.e(TAG, "Error registering plugin sqlcipher_flutter_libs, eu.simonbinder.sqlite3_flutter_libs.Sqlite3FlutterLibsPlugin", e);
+    }
+    try {
+      flutterEngine.getPlugins().add(new io.flutter.plugins.urllauncher.UrlLauncherPlugin());
+    } catch (Exception e) {
+      Log.e(TAG, "Error registering plugin url_launcher_android, io.flutter.plugins.urllauncher.UrlLauncherPlugin", e);
     }
   }
 }

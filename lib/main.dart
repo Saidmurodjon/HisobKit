@@ -21,7 +21,7 @@ void main() async {
     DeviceOrientation.landscapeRight,
   ]);
 
-  // Initialize the encrypted database
+  // Initialize the encrypted database (with fallback on key/corruption errors)
   final db = await initDatabase();
 
   runApp(

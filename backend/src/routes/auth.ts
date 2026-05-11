@@ -13,8 +13,9 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 function maskEmail(email: string): string {
   const [name, domain] = email.split('@');
-  if (name.length <= 2) return email;
-  return `${name[0]}***${name[name.length - 1]}@${domain}`;
+  if (!domain) return email;
+  const visible = name.length <= 2 ? name : name.substring(0, 2);
+  return `${visible}***@${domain}`;
 }
 
 function uuid(): string {
@@ -67,6 +68,61 @@ auth.post('/google/verify', async (c) => {
   if (!result.success) {
     return c.json({ error: otpErrorMessage(result.reason), code: result.reason, attemptsLeft: result.attemptsLeft }, 400);
   }
+
+  // Find or create user
+  let user = await c.env.DB.prepare(
+    'SELECT * FROM users WHERE google_id = ?',
+  ).bind(gUser.googleId).first<{ id: string; email: string; display_name: string | null; avatar_url: string | null; created_at: number }>();
+
+  const isNewUser = !user;
+  const now = Math.floor(Date.now() / 1000);
+
+  if (!user) {
+    const userId = uuid();
+    await c.env.DB.prepare(
+      `INSERT INTO users (id, email, google_id, display_name, avatar_url, last_seen_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+    ).bind(userId, gUser.email, gUser.googleId, gUser.name, gUser.avatarUrl, now).run();
+    await c.env.DB.prepare(
+      `INSERT INTO user_auth_providers (id, user_id, provider, provider_id) VALUES (?, ?, 'google', ?)`,
+    ).bind(uuid(), userId, gUser.googleId).run();
+    user = { id: userId, email: gUser.email, display_name: gUser.name, avatar_url: gUser.avatarUrl, created_at: now };
+  } else {
+    await c.env.DB.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').bind(now, user.id).run();
+  }
+
+  const deviceId = uuid();
+  await c.env.DB.prepare(
+    `INSERT INTO user_devices (id, user_id, device_name, platform, last_active) VALUES (?, ?, ?, 'android', ?)`,
+  ).bind(deviceId, user.id, deviceName ?? 'Unknown', now).run();
+
+  const { accessToken, refreshToken } = await createTokenPair(
+    user.id, user.email, deviceId, c.env.AUTH_KV, c.env.JWT_SECRET,
+    parseInt(c.env.ACCESS_TOKEN_TTL), parseInt(c.env.REFRESH_TOKEN_TTL),
+  );
+
+  return c.json({
+    accessToken,
+    refreshToken,
+    isNewUser,
+    user: {
+      id: user.id,
+      displayName: user.display_name,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      providers: ['google'],
+      createdAt: user.created_at,
+    },
+  });
+});
+
+// ── GOOGLE LOGIN (direct, no OTP) ────────────────────────────────────────────
+auth.post('/google/login', async (c) => {
+  const { idToken, deviceName } = await c.req.json<{ idToken: string; deviceName?: string }>();
+  if (!idToken) return c.json({ error: 'idToken taqdim etilmagan' }, 400);
+
+  const gUser = await verifyGoogleToken(idToken, c.env.GOOGLE_CLIENT_ID);
+  if (!gUser) return c.json({ error: 'Google token noto\'g\'ri' }, 400);
 
   // Find or create user
   let user = await c.env.DB.prepare(
@@ -239,6 +295,113 @@ auth.post('/resend-otp', async (c) => {
   }
 
   return c.json({ success: true, expiresIn: ttl });
+});
+
+// ── UNIFIED SEND-OTP ─────────────────────────────────────────────────────────
+// Mirrors /email/send-otp but returns maskedEmail
+auth.post('/send-otp', async (c) => {
+  const { email } = await c.req.json<{ email: string }>();
+  const normalizedEmail = (email ?? '').trim().toLowerCase();
+  if (!normalizedEmail || !EMAIL_REGEX.test(normalizedEmail)) {
+    return c.json({ error: 'Email formati noto\'g\'ri' }, 400);
+  }
+
+  const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
+  const [ipRl, emailRl] = await Promise.all([
+    checkRateLimit(`ip:${ip}`, 10, 3600, c.env.AUTH_KV),
+    checkRateLimit(`send:${normalizedEmail}`, 1, 60, c.env.AUTH_KV),
+  ]);
+  if (!ipRl.allowed || !emailRl.allowed) {
+    return c.json({ error: 'Juda tez urinish. Biroz kuting.' }, 429);
+  }
+
+  const blocked = await c.env.AUTH_KV.get(`block:otp:${normalizedEmail}`);
+  if (blocked) return c.json({ error: 'Email vaqtincha bloklangan' }, 429);
+
+  const otp = generateOtp();
+  const ttl = parseInt(c.env.OTP_TTL);
+  await saveOtp(normalizedEmail, otp, c.env.AUTH_KV, ttl);
+  const emailResult = await sendOtpEmail(normalizedEmail, otp, c.env.RESEND_API_KEY, c.env.RESEND_FROM_EMAIL);
+  if (!emailResult.ok) {
+    return c.json({ error: 'Email yuborib bo\'lmadi.', detail: emailResult.error }, 502);
+  }
+
+  const maskedEmail = maskEmail(normalizedEmail);
+  return c.json({ success: true, maskedEmail, expiresIn: ttl });
+});
+
+// ── UNIFIED VERIFY-OTP ────────────────────────────────────────────────────────
+// Mirrors /email/verify-otp
+auth.post('/verify-otp', async (c) => {
+  const { email, otp, displayName, platform } = await c.req.json<{
+    email: string;
+    otp: string;
+    displayName?: string;
+    platform?: string;
+  }>();
+
+  const normalizedEmail = (email ?? '').trim().toLowerCase();
+
+  const preVerified = await c.env.AUTH_KV.get(`pre_verified:${normalizedEmail}`);
+
+  if (!preVerified) {
+    const maxAttempts = parseInt(c.env.OTP_MAX_ATTEMPTS);
+    const result = await verifyOtp(normalizedEmail, otp, c.env.AUTH_KV, maxAttempts);
+    if (!result.success) {
+      return c.json({ error: otpErrorMessage(result.reason), code: result.reason, attemptsLeft: result.attemptsLeft }, 400);
+    }
+  }
+
+  let user = await c.env.DB.prepare(
+    'SELECT * FROM users WHERE email = ?',
+  ).bind(normalizedEmail).first<{ id: string; email: string; display_name: string | null; avatar_url: string | null; created_at: number }>();
+
+  const isNewUser = !user;
+  const now = Math.floor(Date.now() / 1000);
+
+  if (!user) {
+    if (!displayName) {
+      await c.env.AUTH_KV.put(`pre_verified:${normalizedEmail}`, '1', { expirationTtl: 600 });
+      return c.json({ error: 'Ism kiritilmagan', code: 'needs_profile', isNewUser: true }, 400);
+    }
+    await c.env.AUTH_KV.delete(`pre_verified:${normalizedEmail}`);
+    const userId = uuid();
+    await c.env.DB.prepare(
+      `INSERT INTO users (id, email, display_name, last_seen_at) VALUES (?, ?, ?, ?)`,
+    ).bind(userId, normalizedEmail, displayName, now).run();
+    await c.env.DB.prepare(
+      `INSERT INTO user_auth_providers (id, user_id, provider, provider_id) VALUES (?, ?, 'email', ?)`,
+    ).bind(uuid(), userId, normalizedEmail).run();
+    user = { id: userId, email: normalizedEmail, display_name: displayName, avatar_url: null, created_at: now };
+  } else {
+    await c.env.AUTH_KV.delete(`pre_verified:${normalizedEmail}`);
+    await c.env.DB.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').bind(now, user.id).run();
+  }
+
+  const deviceId = uuid();
+  const deviceName = platform ?? 'android';
+  await c.env.DB.prepare(
+    `INSERT INTO user_devices (id, user_id, device_name, platform, last_active) VALUES (?, ?, ?, ?, ?)`,
+  ).bind(deviceId, user.id, deviceName, 'android', now).run();
+
+  const { accessToken, refreshToken } = await createTokenPair(
+    user.id, user.email, deviceId, c.env.AUTH_KV, c.env.JWT_SECRET,
+    parseInt(c.env.ACCESS_TOKEN_TTL), parseInt(c.env.REFRESH_TOKEN_TTL),
+  );
+
+  return c.json({
+    accessToken,
+    refreshToken,
+    isNewUser,
+    user: {
+      id: user.id,
+      displayName: user.display_name,
+      email: user.email,
+      avatarUrl: user.avatar_url,
+      providers: ['email'],
+      createdAt: user.created_at,
+    },
+  });
 });
 
 // ── REFRESH ───────────────────────────────────────────────────────────────────

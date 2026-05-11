@@ -57,6 +57,17 @@ class TokenService {
     }
   }
 
+  static const _pinKey = 'hk_pin_code';
+  static const _langKey = 'hk_language';
+
+  Future<void> savePin(String pin) =>
+      _storage.write(key: _pinKey, value: pin);
+  Future<String?> getPin() => _storage.read(key: _pinKey);
+
+  Future<void> saveLanguage(String lang) =>
+      _storage.write(key: _langKey, value: lang);
+  Future<String?> getLanguage() => _storage.read(key: _langKey);
+
   Future<void> clearAll() => _storage.deleteAll();
 
   bool isTokenExpired(String token) {

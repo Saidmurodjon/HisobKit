@@ -18,6 +18,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
     with SingleTickerProviderStateMixin {
   final List<String> _pin = [];
   bool _isError = false;
+  bool _isLoading = false;
   bool _biometricsAvailable = false;
   late final AnimationController _shakeController;
   late final Animation<double> _shakeAnimation;
@@ -59,7 +60,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
   }
 
   void _addDigit(String digit) {
-    if (_pin.length >= 6) return;
+    if (_pin.length >= 6 || _isLoading) return;
     setState(() {
       _pin.add(digit);
       _isError = false;
@@ -74,16 +75,18 @@ class _LockScreenState extends ConsumerState<LockScreen>
 
   Future<void> _tryUnlock() async {
     final pinStr = _pin.join();
+    if (mounted) setState(() => _isLoading = true);
     final success =
         await ref.read(authProvider.notifier).authenticateWithPin(pinStr);
-    if (!success && mounted) {
-      HapticFeedback.heavyImpact();
-      _shakeController.forward(from: 0);
-      setState(() {
-        _isError = true;
-        _pin.clear();
-      });
-    }
+    if (!mounted) return;
+    if (success) return; // router redirect handles navigation
+    HapticFeedback.heavyImpact();
+    _shakeController.forward(from: 0);
+    setState(() {
+      _isError = true;
+      _isLoading = false;
+      _pin.clear();
+    });
   }
 
   @override
@@ -127,13 +130,23 @@ class _LockScreenState extends ConsumerState<LockScreen>
               ),
               const SizedBox(height: 8),
               Text(
-                'Enter PIN',
+                'PIN kiriting',
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: Colors.white60,
                 ),
               ),
               const SizedBox(height: 40),
+              // Loading indicator
+              if (_isLoading) ...[
+                const SizedBox(
+                  width: 28, height: 28,
+                  child: CircularProgressIndicator(
+                    color: Colors.white70, strokeWidth: 2.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+              ],
               // PIN dots with shake
               AnimatedBuilder(
                 animation: _shakeAnimation,
@@ -156,7 +169,7 @@ class _LockScreenState extends ConsumerState<LockScreen>
               if (_isError) ...[
                 const SizedBox(height: 12),
                 Text(
-                  'Incorrect PIN. Try again.',
+                  'Noto\'g\'ri PIN. Qayta urinib ko\'ring.',
                   style: GoogleFonts.inter(
                     color: AppTheme.danger,
                     fontSize: 13,

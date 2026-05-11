@@ -143,6 +143,26 @@ class DebtSyncService {
     return b64;
   }
 
+  /// Export QR for borrower-initiated debt request (sent to lender for confirmation).
+  Future<String> exportAsBorrowerQR({
+    required int debtId,
+    required String recipientPublicKey,
+  }) async {
+    final pkg = await _buildPackage(
+      debtId: debtId,
+      recipientPublicKey: recipientPublicKey,
+      packageType: 'debt_borrower_request',
+    );
+
+    final json = jsonEncode(pkg.toJson());
+    final compressed = GZipEncoder().encode(utf8.encode(json));
+    if (compressed == null) throw Exception('Compression failed');
+    final b64 = base64Encode(Uint8List.fromList(compressed));
+
+    if (b64.length > 2800) throw QrTooLargeException(b64.length);
+    return b64;
+  }
+
   // ── Export as .hkd file ───────────────────────────────────────────────────
 
   Future<void> exportAsFile({
@@ -233,28 +253,53 @@ class DebtSyncService {
     // Verify content hash
     final contentHash = debtMap['contentHash'] as String?;
 
-    // Verify lender signature if present
+    // Verify signatures based on who initiated the package
     if (contentHash != null) {
-      final lenderSigMap = sigsRaw
-          .cast<Map<String, dynamic>>()
-          .where((s) => s['role'] == 'lender')
-          .firstOrNull;
-
-      if (lenderSigMap != null) {
-        final lenderPk = lenderSigMap['signerPublicKey'] as String;
-        final lenderSig = lenderSigMap['signature'] as String;
-        final dataToVerify = {
-          'debt_id': debtMap['id'],
-          'hash': contentHash,
-          'role': 'lender',
-        };
-        final valid = await IdentityService.verifySignature(
-          data: dataToVerify,
-          signature: lenderSig,
-          publicKey: lenderPk,
-        );
-        if (!valid) {
-          throw InvalidSignatureException(role: 'lender', publicKey: lenderPk);
+      if (pkg.type == 'debt_borrower_request') {
+        // Borrower-initiated: verify borrower signature
+        final borrowerSigMap = sigsRaw
+            .cast<Map<String, dynamic>>()
+            .where((s) => s['role'] == 'borrower')
+            .firstOrNull;
+        if (borrowerSigMap != null) {
+          final borrowerPk = borrowerSigMap['signerPublicKey'] as String;
+          final borrowerSig = borrowerSigMap['signature'] as String;
+          final dataToVerify = {
+            'debt_id': debtMap['id'],
+            'hash': contentHash,
+            'role': 'borrower',
+          };
+          final valid = await IdentityService.verifySignature(
+            data: dataToVerify,
+            signature: borrowerSig,
+            publicKey: borrowerPk,
+          );
+          if (!valid) {
+            throw InvalidSignatureException(role: 'borrower', publicKey: borrowerPk);
+          }
+        }
+      } else {
+        // Lender-initiated (default): verify lender signature
+        final lenderSigMap = sigsRaw
+            .cast<Map<String, dynamic>>()
+            .where((s) => s['role'] == 'lender')
+            .firstOrNull;
+        if (lenderSigMap != null) {
+          final lenderPk = lenderSigMap['signerPublicKey'] as String;
+          final lenderSig = lenderSigMap['signature'] as String;
+          final dataToVerify = {
+            'debt_id': debtMap['id'],
+            'hash': contentHash,
+            'role': 'lender',
+          };
+          final valid = await IdentityService.verifySignature(
+            data: dataToVerify,
+            signature: lenderSig,
+            publicKey: lenderPk,
+          );
+          if (!valid) {
+            throw InvalidSignatureException(role: 'lender', publicKey: lenderPk);
+          }
         }
       }
     }
@@ -265,7 +310,9 @@ class DebtSyncService {
     if (existingDebt == null) {
       final newDebtId = await _db.debtsDao.insertDebt(DebtsCompanion(
         personName: Value(debtMap['personName'] as String),
-        type: Value(debtMap['type'] as String),
+        type: Value(pkg.type == 'debt_borrower_request'
+            ? (debtMap['type'] == 'borrowed' ? 'lent' : 'borrowed')
+            : debtMap['type'] as String),
         amount: Value((debtMap['amount'] as num).toDouble()),
         currency: Value(debtMap['currency'] as String),
         dueDate: Value(debtMap['dueDate'] != null

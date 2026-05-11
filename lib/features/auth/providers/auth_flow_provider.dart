@@ -31,7 +31,7 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
   final TokenService _tokens;
 
   AuthFlowNotifier(this._api, this._google, this._tokens)
-      : super(const AuthFlowInitial()) {
+      : super(const AuthInitial()) {
     _init();
   }
 
@@ -39,92 +39,83 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
     final token = await _tokens.getAccessToken();
     final user = await _tokens.getUser();
     if (token != null && user != null && !_tokens.isTokenExpired(token)) {
-      state = AuthFlowSuccess(user: user);
+      state = AuthSuccess(user: user);
     }
     // Try refresh if access expired but refresh available
     else if (user != null) {
       final refresh = await _tokens.getRefreshToken();
       if (refresh != null && !_tokens.isTokenExpired(refresh)) {
-        state = AuthFlowSuccess(user: user);
+        state = AuthSuccess(user: user);
       }
     }
   }
 
   // ── Google sign-in ──────────────────────────────────────────────────────────
   Future<void> signInWithGoogle() async {
-    state = const AuthFlowLoading();
+    state = const AuthLoading();
     try {
       final idToken = await _google.signIn();
       if (idToken == null) {
         // User cancelled — go back to initial quietly
-        state = const AuthFlowInitial();
+        state = const AuthInitial();
         return;
       }
-      final res = await _api.googleInit(idToken);
-      state = AuthFlowGoogleOtpPending(
-        email: res['email'] as String,
-        maskedEmail: res['maskedEmail'] as String? ?? res['email'] as String,
-        name: res['name'] as String? ?? '',
-        avatarUrl: res['avatarUrl'] as String?,
-        idToken: idToken,
-        expiresIn: res['expiresIn'] as int? ?? 300,
-      );
+      // Direct login — no OTP step
+      final res = await _api.googleLogin(idToken);
+      await _handleSuccess(res);
     } on GoogleAuthException catch (e) {
       dev.log('Google sign-in error: $e');
-      state = AuthFlowError(message: e.message, code: e.code);
+      state = AuthError(message: e.message, code: e.code);
     } on DioException catch (e) {
-      dev.log('Google API error: $e');
-      state = AuthFlowError(message: _extractError(e) ?? 'Google kirish xatosi');
+      dev.log('Google API error: ${e.response?.data}');
+      state = AuthError(message: _extractError(e) ?? 'Google kirish xatosi');
     } catch (e) {
-      dev.log('Google unexpected error: $e');
-      state = AuthFlowError(message: 'Xatolik: $e');
+      dev.log('Google unexpected: $e');
+      state = AuthError(message: 'Xatolik: $e');
     }
   }
 
   // ── Email OTP send ──────────────────────────────────────────────────────────
   Future<void> sendEmailOtp(String email) async {
-    state = const AuthFlowLoading();
+    state = const AuthLoading();
+    final normalizedEmail = email.trim().toLowerCase();
     try {
-      final res = await _api.emailSendOtp(email);
-      state = AuthFlowEmailOtpPending(
-        email: email,
+      final res = await _api.sendOtp(normalizedEmail);
+      state = AuthOtpSent(
+        email: normalizedEmail,
+        maskedEmail: res['maskedEmail'] as String? ?? _maskEmail(normalizedEmail),
         expiresIn: res['expiresIn'] as int? ?? 300,
       );
     } on DioException catch (e) {
       dev.log('sendEmailOtp error: ${e.response?.statusCode} ${e.response?.data}');
-      state = AuthFlowError(message: _extractError(e) ?? 'Email yuborishda xato');
+      state = AuthError(message: _extractError(e) ?? 'Email yuborishda xato');
     } catch (e) {
       dev.log('sendEmailOtp unexpected: $e');
-      state = AuthFlowError(message: 'Xatolik: $e');
+      state = AuthError(message: 'Xatolik: $e');
     }
   }
 
-  // ── Google OTP verify ───────────────────────────────────────────────────────
-  Future<void> verifyGoogleOtp(String otp) async {
-    final current = state;
-    if (current is! AuthFlowGoogleOtpPending) return;
-
-    state = const AuthFlowLoading();
-    try {
-      final res = await _api.googleVerify(idToken: current.idToken, otp: otp);
-      await _handleSuccess(res);
-    } on DioException catch (e) {
-      _handleOtpError(e, current);
-    }
+  static String _maskEmail(String email) {
+    final parts = email.split('@');
+    if (parts.length != 2) return email;
+    final name = parts[0];
+    final domain = parts[1];
+    if (name.length <= 2) return '$name***@$domain';
+    return '${name.substring(0, 2)}***@$domain';
   }
 
   // ── Email OTP verify ────────────────────────────────────────────────────────
   Future<void> verifyEmailOtp(String otp, {String? displayName}) async {
     final current = state;
-    if (current is! AuthFlowEmailOtpPending && current is! AuthFlowNeedsProfile) return;
+    if (current is! AuthOtpSent && current is! AuthNeedsProfile) return;
 
-    final email = current is AuthFlowEmailOtpPending
+    final email = current is AuthOtpSent
         ? current.email
-        : (current as AuthFlowNeedsProfile).email;
+        : (current as AuthNeedsProfile).email;
 
-    state = const AuthFlowLoading();
+    state = const AuthLoading();
     try {
-      final res = await _api.emailVerifyOtp(
+      final res = await _api.verifyOtp(
         email: email,
         otp: otp,
         displayName: displayName,
@@ -132,10 +123,7 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
 
       // Backend said: new user but no display name sent
       if (res['code'] == 'needs_profile') {
-        state = AuthFlowNeedsProfile(
-          email: email,
-          pendingOtp: otp,
-        );
+        state = AuthNeedsProfile(email: email);
         return;
       }
 
@@ -143,33 +131,42 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
     } on DioException catch (e) {
       final data = e.response?.data as Map<String, dynamic>?;
       if (data?['code'] == 'needs_profile') {
-        state = AuthFlowNeedsProfile(
-          email: email,
-          pendingOtp: otp,
-        );
+        state = AuthNeedsProfile(email: email);
         return;
       }
-      final prev = current is AuthFlowEmailOtpPending
+      final prev = current is AuthOtpSent
           ? current
-          : AuthFlowEmailOtpPending(email: email, expiresIn: 300);
+          : AuthOtpSent(
+              email: email,
+              maskedEmail: _maskEmail(email),
+              expiresIn: 300,
+            );
       _handleOtpError(e, prev);
+    } catch (e) {
+      dev.log('verifyEmailOtp unexpected: $e');
+      state = AuthError(message: 'Xatolik yuz berdi. Qayta urinib ko\'ring.');
     }
   }
 
   // ── Submit profile (display name) ───────────────────────────────────────────
+  // Backend checks pre_verified:{email} KV and creates the user with displayName
   Future<void> submitProfile(String displayName) async {
     final current = state;
-    if (current is! AuthFlowNeedsProfile) return;
-    state = const AuthFlowLoading();
+    if (current is! AuthNeedsProfile) return;
+    state = const AuthLoading();
     try {
-      final res = await _api.emailVerifyOtp(
+      final res = await _api.verifyOtp(
         email: current.email,
-        otp: current.pendingOtp,
+        otp: '',
         displayName: displayName,
       );
       await _handleSuccess(res);
     } on DioException catch (e) {
-      state = AuthFlowError(message: _extractError(e) ?? 'Xatolik');
+      dev.log('submitProfile DioException: ${e.response?.statusCode} ${e.response?.data}');
+      state = AuthError(message: _extractError(e) ?? 'Xatolik yuz berdi');
+    } catch (e) {
+      dev.log('submitProfile unexpected: $e');
+      state = AuthError(message: 'Xatolik yuz berdi. Qayta urinib ko\'ring.');
     }
   }
 
@@ -177,8 +174,7 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
   Future<void> resendOtp() async {
     final current = state;
     String? email;
-    if (current is AuthFlowEmailOtpPending) email = current.email;
-    if (current is AuthFlowGoogleOtpPending) email = current.email;
+    if (current is AuthOtpSent) email = current.email;
     if (email == null) return;
     try {
       await _api.resendOtp(email);
@@ -193,11 +189,11 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
     } catch (_) {}
     await _tokens.clearAll();
     await _google.signOut();
-    state = const AuthFlowInitial();
+    state = const AuthInitial();
   }
 
   // ── Back to initial ─────────────────────────────────────────────────────────
-  void goBack() => state = const AuthFlowInitial();
+  void goBack() => state = const AuthInitial();
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   Future<void> _handleSuccess(Map<String, dynamic> res) async {
@@ -207,18 +203,20 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
       refresh: res['refreshToken'] as String,
     );
     await _tokens.saveUser(user);
-    state = AuthFlowSuccess(user: user);
+    state = AuthSuccess(user: user);
   }
 
   void _handleOtpError(DioException e, AuthFlowState prev) {
     final data = e.response?.data as Map<String, dynamic>?;
-    state = AuthFlowError(
-      message: data?['error'] as String? ?? 'Xatolik',
+    state = AuthError(
+      message: data?['error'] as String? ?? 'Kod noto\'g\'ri',
       code: data?['code'] as String?,
       attemptsLeft: data?['attemptsLeft'] as int?,
     );
-    Future.delayed(const Duration(seconds: 3), () {
-      if (mounted && state is AuthFlowError) state = prev;
+    // Reset to previous state after 2s so user can re-enter OTP
+    final errorState = state;
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted && identical(state, errorState)) state = prev;
     });
   }
 

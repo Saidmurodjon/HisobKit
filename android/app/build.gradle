@@ -50,6 +50,14 @@ android {
             shrinkResources false
         }
     }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            def vName = variant.versionName
+            def vCode = variant.versionCode
+            outputFileName = "HisobKit-v${vName}+${vCode}.apk"
+        }
+    }
 }
 
 flutter {

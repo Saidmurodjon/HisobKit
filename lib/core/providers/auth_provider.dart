@@ -10,7 +10,18 @@ class AuthNotifier extends Notifier<AuthState> {
   Timer? _lockTimer;
 
   @override
-  AuthState build() => AuthState.locked;
+  AuthState build() {
+    // Async: if no PIN has been set, switch to noAuth so lock screen is skipped
+    _initializeAuthState();
+    return AuthState.locked; // default until async check completes
+  }
+
+  Future<void> _initializeAuthState() async {
+    final hasPin = await PinService.hasPin();
+    try {
+      if (!hasPin) state = AuthState.noAuth;
+    } catch (_) {} // Provider may have been disposed
+  }
 
   void unlock() {
     state = AuthState.unlocked;

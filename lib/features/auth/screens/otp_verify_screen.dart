@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_flow_provider.dart';
 import '../models/auth_state.dart';
+import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
 
 class OtpVerifyScreen extends ConsumerStatefulWidget {
@@ -19,23 +20,29 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
 
-  int _resendCountdown = 60;
+  int _countdown = 300;
   Timer? _timer;
+  String _maskedEmail = '';
 
   @override
   void initState() {
     super.initState();
+    final s = ref.read(authFlowProvider);
+    if (s is AuthOtpSent) {
+      _maskedEmail = s.maskedEmail;
+      _countdown = s.expiresIn;
+    }
     _startCountdown();
   }
 
-  void _startCountdown() {
+  void _startCountdown([int? seconds]) {
     _timer?.cancel();
-    setState(() => _resendCountdown = 60);
+    if (seconds != null) setState(() => _countdown = seconds);
     _timer = Timer.periodic(const Duration(seconds: 1), (t) {
       if (!mounted) return t.cancel();
       setState(() {
-        if (_resendCountdown > 0) {
-          _resendCountdown--;
+        if (_countdown > 0) {
+          _countdown--;
         } else {
           t.cancel();
         }
@@ -46,27 +53,23 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in _controllers) {
-      c.dispose();
-    }
-    for (final f in _focusNodes) {
-      f.dispose();
-    }
+    for (final c in _controllers) c.dispose();
+    for (final f in _focusNodes) f.dispose();
     super.dispose();
   }
 
   String get _otp => _controllers.map((c) => c.text).join();
 
+  String _formatTime(int seconds) {
+    final m = seconds ~/ 60;
+    final s = seconds % 60;
+    return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
   void _submit() {
     final otp = _otp;
     if (otp.length != 6) return;
-    final state = ref.read(authFlowProvider);
-    final notifier = ref.read(authFlowProvider.notifier);
-    if (state is AuthFlowGoogleOtpPending) {
-      notifier.verifyGoogleOtp(otp);
-    } else if (state is AuthFlowEmailOtpPending) {
-      notifier.verifyEmailOtp(otp);
-    }
+    ref.read(authFlowProvider.notifier).verifyEmailOtp(otp);
   }
 
   void _onDigitChanged(int index, String value) {
@@ -79,10 +82,8 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
   }
 
   void _clearInputs() {
-    for (final c in _controllers) {
-      c.clear();
-    }
-    _focusNodes[0].requestFocus();
+    for (final c in _controllers) c.clear();
+    if (mounted) _focusNodes[0].requestFocus();
   }
 
   @override
@@ -91,89 +92,90 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
     final notifier = ref.read(authFlowProvider.notifier);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
+    // Keep maskedEmail even when state transitions to error/loading
+    if (state is AuthOtpSent) _maskedEmail = state.maskedEmail;
+
     ref.listen<AuthFlowState>(authFlowProvider, (prev, next) {
-      if (next is AuthFlowSuccess) {
+      if (next is AuthSuccess) {
+        // Cloud auth succeeded → also unlock device lock so no second login
+        ref.read(authProvider.notifier).unlock();
         context.go('/');
-      } else if (next is AuthFlowNeedsProfile) {
-        context.go('/auth/profile');
-      } else if (next is AuthFlowError) {
-        _clearInputs();
       }
+      if (next is AuthNeedsProfile) context.go('/auth/profile');
+      if (next is AuthError) _clearInputs();
     });
 
-    String maskedEmail = '';
-    String? name;
-    String? avatarUrl;
-
-    if (state is AuthFlowGoogleOtpPending) {
-      maskedEmail = state.maskedEmail;
-      name = state.name;
-      avatarUrl = state.avatarUrl;
-    } else if (state is AuthFlowEmailOtpPending) {
-      maskedEmail = state.email;
-    } else if (state is AuthFlowError) {
-      // keep showing previous info
-    }
-
-    final isBlocked = state is AuthFlowError && state.code == 'blocked';
-    final isExpired = state is AuthFlowError && state.code == 'expired';
-    final isLoading = state is AuthFlowLoading;
+    final isLoading = state is AuthLoading;
+    final isBlocked = state is AuthError && state.code == 'blocked';
+    final hasError = state is AuthError;
 
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          onPressed: () => context.go('/auth/welcome'),
+          onPressed: () {
+            notifier.goBack();
+            context.go('/auth/welcome');
+          },
         ),
         title: Text('Tasdiqlash kodi',
-            style: GoogleFonts.sora(
-                fontSize: 18, fontWeight: FontWeight.w700)),
+            style: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w700)),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
 
-              // Avatar / icon
-              if (avatarUrl != null)
-                CircleAvatar(
-                  radius: 36,
-                  backgroundImage: NetworkImage(avatarUrl),
-                )
-              else
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppTheme.primary, AppTheme.accent],
+              // Email icon
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                      colors: [AppTheme.primary, AppTheme.accent]),
+                  shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppTheme.primary.withAlpha(60),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
                     ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.email_outlined,
-                      color: Colors.white, size: 32),
+                  ],
                 ),
-
+                child: const Icon(Icons.mark_email_unread_outlined,
+                    color: Colors.white, size: 30),
+              ),
               const SizedBox(height: 20),
 
-              if (name != null) ...[
-                Text(name,
-                    style: GoogleFonts.sora(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white : AppTheme.primary)),
-                const SizedBox(height: 4),
-              ],
-
               Text(
-                'Kod $maskedEmail ga yuborildi',
-                style: GoogleFonts.inter(
-                    fontSize: 14, color: Colors.grey.shade600),
+                'Emailingizni tasdiqlang',
+                style: GoogleFonts.sora(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : AppTheme.primary),
+              ),
+              const SizedBox(height: 8),
+              RichText(
                 textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: GoogleFonts.inter(
+                      fontSize: 14, color: Colors.grey.shade500),
+                  children: [
+                    const TextSpan(text: 'Kod '),
+                    TextSpan(
+                      text: _maskedEmail,
+                      style: GoogleFonts.inter(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white70 : AppTheme.primary),
+                    ),
+                    const TextSpan(text: ' ga yuborildi'),
+                  ],
+                ),
               ),
 
               const SizedBox(height: 36),
@@ -182,7 +184,6 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: List.generate(6, (i) {
-                  final hasError = state is AuthFlowError;
                   return Container(
                     width: 46,
                     height: 56,
@@ -197,16 +198,18 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                       style: GoogleFonts.sora(
                         fontSize: 22,
                         fontWeight: FontWeight.w700,
-                        color: hasError ? Colors.red : null,
+                        color: hasError ? Colors.red.shade400 : null,
                       ),
                       decoration: InputDecoration(
                         counterText: '',
                         filled: true,
                         fillColor: hasError
-                            ? Colors.red.shade50
+                            ? (isDark
+                                ? Colors.red.shade900.withAlpha(80)
+                                : Colors.red.shade50)
                             : isDark
-                                ? Colors.white.withAlpha(13)
-                                : Colors.grey.shade50,
+                                ? Colors.white.withAlpha(18)
+                                : const Color(0xFFF4F6F9),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12)),
                         enabledBorder: OutlineInputBorder(
@@ -214,7 +217,9 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
                           borderSide: BorderSide(
                             color: hasError
                                 ? Colors.red.shade300
-                                : Colors.grey.shade300,
+                                : isDark
+                                    ? Colors.white24
+                                    : Colors.grey.shade300,
                             width: 1.5,
                           ),
                         ),
@@ -234,87 +239,111 @@ class _OtpVerifyScreenState extends ConsumerState<OtpVerifyScreen> {
 
               const SizedBox(height: 20),
 
-              // Status messages
+              // Status
               if (isLoading)
-                const CircularProgressIndicator()
-              else if (state is AuthFlowError) ...[
+                const SizedBox(
+                    height: 32,
+                    child: CircularProgressIndicator(strokeWidth: 2.5))
+              else if (state case AuthError(:final message, :final attemptsLeft) when !isBlocked)
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   decoration: BoxDecoration(
-                    color: Colors.red.shade50,
+                    color: isDark
+                        ? Colors.red.shade900.withAlpha(80)
+                        : Colors.red.shade50,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.red.shade200),
+                    border: Border.all(
+                        color: isDark
+                            ? Colors.red.shade700
+                            : Colors.red.shade200),
                   ),
-                  child: Column(
-                    children: [
+                  child: Column(children: [
+                    Text(
+                      message,
+                      style: GoogleFonts.inter(
+                          fontSize: 13, color: Colors.red.shade400),
+                      textAlign: TextAlign.center,
+                    ),
+                    if (attemptsLeft != null)
                       Text(
-                        state.message,
+                        '$attemptsLeft ta urinish qoldi',
                         style: GoogleFonts.inter(
-                            fontSize: 13, color: Colors.red.shade700),
-                        textAlign: TextAlign.center,
+                            fontSize: 12,
+                            color: Colors.red.shade400,
+                            fontWeight: FontWeight.w600),
                       ),
-                      if (state.attemptsLeft != null)
-                        Text(
-                          '${state.attemptsLeft} ta urinish qoldi',
-                          style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: Colors.red.shade500,
-                              fontWeight: FontWeight.w600),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-
-              const Spacer(),
-
-              // Resend button
-              if (!isBlocked)
-                TextButton(
-                  onPressed: _resendCountdown == 0 && !isLoading
-                      ? () {
-                          notifier.resendOtp();
-                          _startCountdown();
-                          _clearInputs();
-                        }
-                      : null,
-                  child: Text(
-                    _resendCountdown > 0
-                        ? 'Qayta yuborish (${_resendCountdown}s)'
-                        : 'Qayta yuborish',
-                    style: GoogleFonts.inter(
-                        fontSize: 14,
-                        color: _resendCountdown == 0
-                            ? AppTheme.accent
-                            : Colors.grey.shade400),
-                  ),
+                  ]),
                 ),
 
               if (isBlocked)
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
+                    color: isDark
+                        ? Colors.orange.shade900.withAlpha(80)
+                        : Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                        color: isDark
+                            ? Colors.orange.shade700
+                            : Colors.orange.shade200),
                   ),
                   child: Text(
                     '30 daqiqa bloklandingiz. Keyinroq urinib ko\'ring.',
                     style: GoogleFonts.inter(
-                        fontSize: 13, color: Colors.orange.shade700),
+                        fontSize: 13, color: Colors.orange.shade600),
                     textAlign: TextAlign.center,
                   ),
                 ),
 
-              if (isExpired) ...[
-                const SizedBox(height: 8),
-                FilledButton.tonal(
-                  onPressed: () {
-                    notifier.resendOtp();
-                    _startCountdown();
-                    _clearInputs();
-                  },
-                  child: const Text('Yangi kod so\'rash'),
+              const Spacer(),
+
+              // Timer + Resend
+              if (!isBlocked) ...[
+                // Countdown ring
+                if (_countdown > 0)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.timer_outlined,
+                          size: 16,
+                          color: _countdown < 60
+                              ? Colors.orange.shade400
+                              : Colors.grey.shade400),
+                      const SizedBox(width: 6),
+                      Text(
+                        _formatTime(_countdown),
+                        style: GoogleFonts.sora(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: _countdown < 60
+                              ? Colors.orange.shade400
+                              : (isDark ? Colors.white54 : Colors.grey.shade600),
+                        ),
+                      ),
+                    ],
+                  ),
+
+                const SizedBox(height: 10),
+
+                TextButton(
+                  onPressed: _countdown == 0 && !isLoading
+                      ? () {
+                          notifier.resendOtp();
+                          _startCountdown(300);
+                          _clearInputs();
+                        }
+                      : null,
+                  child: Text(
+                    'Qayta yuborish',
+                    style: GoogleFonts.inter(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: _countdown == 0
+                            ? AppTheme.accent
+                            : Colors.grey.shade400),
+                  ),
                 ),
               ],
 

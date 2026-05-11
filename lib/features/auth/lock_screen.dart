@@ -34,7 +34,10 @@ class _LockScreenState extends ConsumerState<LockScreen>
       CurvedAnimation(parent: _shakeController, curve: Curves.elasticOut),
     );
     _checkBiometrics();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      // If no PIN is set, skip lock screen automatically
+      final hasAuth = await ref.read(authProvider.notifier).checkHasAuth();
+      if (!hasAuth) return; // router handles redirect
       _tryBiometrics();
     });
   }

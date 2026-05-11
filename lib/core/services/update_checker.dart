@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 // ⚠️ Bu versiyani har release da pubspec.yaml bilan birga yangilang!
-const String _currentVersion = '1.4.0';
+const String _currentVersion = '1.4.1';
 const String _repoOwner = 'Saidmurodjon';
 const String _repoName = 'HisobKit';
 

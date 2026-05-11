@@ -30,6 +30,7 @@ import '../../features/house/house_sync_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../../features/auth/providers/auth_flow_provider.dart';
+import '../../features/auth/providers/cloud_auth_skip_provider.dart';
 import '../../features/auth/models/auth_state.dart';
 import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/otp_verify_screen.dart';
@@ -53,6 +54,10 @@ class _RouterNotifier extends ChangeNotifier {
     );
     _ref.listen<AuthFlowState>(
       authFlowProvider,
+      (_, __) => notifyListeners(),
+    );
+    _ref.listen<bool>(
+      cloudAuthSkippedProvider,
       (_, __) => notifyListeners(),
     );
   }
@@ -85,6 +90,15 @@ class _RouterNotifier extends ChangeNotifier {
 
     if (isLocked && !isLockScreen) return '/lock';
     if (!isLocked && isLockScreen) return '/';
+
+    // Cloud auth check — redirect to welcome if not logged in and not skipped
+    // Applies to ALL users (new + existing) when they reach the dashboard
+    final cloudAuth = _ref.read(authFlowProvider);
+    final cloudSkipped = _ref.read(cloudAuthSkippedProvider);
+    final isAuthScreen = state.matchedLocation.startsWith('/auth/');
+    if (!isLocked && !isAuthScreen && cloudAuth is! AuthSuccess && !cloudSkipped) {
+      return '/auth/welcome';
+    }
 
     return null;
   }

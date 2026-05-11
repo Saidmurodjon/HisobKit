@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../providers/auth_flow_provider.dart';
+import '../providers/cloud_auth_skip_provider.dart';
 import '../models/auth_state.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -275,6 +276,25 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                 ),
 
                 const Spacer(),
+
+                // Skip button — offline mode
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          ref.read(cloudAuthSkippedProvider.notifier).state =
+                              true;
+                          context.go('/');
+                        },
+                  child: Text(
+                    'Keyinroq kiraman (oflayn rejim)',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: isDark ? Colors.white38 : Colors.grey.shade500,
+                    ),
+                  ),
+                ),
+
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(

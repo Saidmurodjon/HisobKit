@@ -7608,6 +7608,2196 @@ class SyncQueueCompanion extends UpdateCompanion<SyncQueueData> {
   }
 }
 
+class $SettlementPeriodsTable extends SettlementPeriods
+    with TableInfo<$SettlementPeriodsTable, SettlementPeriod> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SettlementPeriodsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _groupIdMeta =
+      const VerificationMeta('groupId');
+  @override
+  late final GeneratedColumn<int> groupId = GeneratedColumn<int>(
+      'group_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES house_groups (id) ON DELETE CASCADE'));
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 200),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _startDateMeta =
+      const VerificationMeta('startDate');
+  @override
+  late final GeneratedColumn<DateTime> startDate = GeneratedColumn<DateTime>(
+      'start_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _endDateMeta =
+      const VerificationMeta('endDate');
+  @override
+  late final GeneratedColumn<DateTime> endDate = GeneratedColumn<DateTime>(
+      'end_date', aliasedName, false,
+      type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('draft'));
+  static const VerificationMeta _remoteIdMeta =
+      const VerificationMeta('remoteId');
+  @override
+  late final GeneratedColumn<String> remoteId = GeneratedColumn<String>(
+      'remote_id', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _createdAtMeta =
+      const VerificationMeta('createdAt');
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+      'created_at', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, groupId, title, startDate, endDate, status, remoteId, createdAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'settlement_periods';
+  @override
+  VerificationContext validateIntegrity(Insertable<SettlementPeriod> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('group_id')) {
+      context.handle(_groupIdMeta,
+          groupId.isAcceptableOrUnknown(data['group_id']!, _groupIdMeta));
+    } else if (isInserting) {
+      context.missing(_groupIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('start_date')) {
+      context.handle(_startDateMeta,
+          startDate.isAcceptableOrUnknown(data['start_date']!, _startDateMeta));
+    } else if (isInserting) {
+      context.missing(_startDateMeta);
+    }
+    if (data.containsKey('end_date')) {
+      context.handle(_endDateMeta,
+          endDate.isAcceptableOrUnknown(data['end_date']!, _endDateMeta));
+    } else if (isInserting) {
+      context.missing(_endDateMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(_remoteIdMeta,
+          remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta));
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(_createdAtMeta,
+          createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SettlementPeriod map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SettlementPeriod(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      groupId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}group_id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      startDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}start_date'])!,
+      endDate: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}end_date'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      remoteId: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}remote_id']),
+      createdAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created_at'])!,
+    );
+  }
+
+  @override
+  $SettlementPeriodsTable createAlias(String alias) {
+    return $SettlementPeriodsTable(attachedDatabase, alias);
+  }
+}
+
+class SettlementPeriod extends DataClass
+    implements Insertable<SettlementPeriod> {
+  final int id;
+  final int groupId;
+  final String title;
+  final DateTime startDate;
+  final DateTime endDate;
+  final String status;
+  final String? remoteId;
+  final DateTime createdAt;
+  const SettlementPeriod(
+      {required this.id,
+      required this.groupId,
+      required this.title,
+      required this.startDate,
+      required this.endDate,
+      required this.status,
+      this.remoteId,
+      required this.createdAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['group_id'] = Variable<int>(groupId);
+    map['title'] = Variable<String>(title);
+    map['start_date'] = Variable<DateTime>(startDate);
+    map['end_date'] = Variable<DateTime>(endDate);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<String>(remoteId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SettlementPeriodsCompanion toCompanion(bool nullToAbsent) {
+    return SettlementPeriodsCompanion(
+      id: Value(id),
+      groupId: Value(groupId),
+      title: Value(title),
+      startDate: Value(startDate),
+      endDate: Value(endDate),
+      status: Value(status),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SettlementPeriod.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SettlementPeriod(
+      id: serializer.fromJson<int>(json['id']),
+      groupId: serializer.fromJson<int>(json['groupId']),
+      title: serializer.fromJson<String>(json['title']),
+      startDate: serializer.fromJson<DateTime>(json['startDate']),
+      endDate: serializer.fromJson<DateTime>(json['endDate']),
+      status: serializer.fromJson<String>(json['status']),
+      remoteId: serializer.fromJson<String?>(json['remoteId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'groupId': serializer.toJson<int>(groupId),
+      'title': serializer.toJson<String>(title),
+      'startDate': serializer.toJson<DateTime>(startDate),
+      'endDate': serializer.toJson<DateTime>(endDate),
+      'status': serializer.toJson<String>(status),
+      'remoteId': serializer.toJson<String?>(remoteId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SettlementPeriod copyWith(
+          {int? id,
+          int? groupId,
+          String? title,
+          DateTime? startDate,
+          DateTime? endDate,
+          String? status,
+          Value<String?> remoteId = const Value.absent(),
+          DateTime? createdAt}) =>
+      SettlementPeriod(
+        id: id ?? this.id,
+        groupId: groupId ?? this.groupId,
+        title: title ?? this.title,
+        startDate: startDate ?? this.startDate,
+        endDate: endDate ?? this.endDate,
+        status: status ?? this.status,
+        remoteId: remoteId.present ? remoteId.value : this.remoteId,
+        createdAt: createdAt ?? this.createdAt,
+      );
+  SettlementPeriod copyWithCompanion(SettlementPeriodsCompanion data) {
+    return SettlementPeriod(
+      id: data.id.present ? data.id.value : this.id,
+      groupId: data.groupId.present ? data.groupId.value : this.groupId,
+      title: data.title.present ? data.title.value : this.title,
+      startDate: data.startDate.present ? data.startDate.value : this.startDate,
+      endDate: data.endDate.present ? data.endDate.value : this.endDate,
+      status: data.status.present ? data.status.value : this.status,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SettlementPeriod(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('title: $title, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('status: $status, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+      id, groupId, title, startDate, endDate, status, remoteId, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SettlementPeriod &&
+          other.id == this.id &&
+          other.groupId == this.groupId &&
+          other.title == this.title &&
+          other.startDate == this.startDate &&
+          other.endDate == this.endDate &&
+          other.status == this.status &&
+          other.remoteId == this.remoteId &&
+          other.createdAt == this.createdAt);
+}
+
+class SettlementPeriodsCompanion extends UpdateCompanion<SettlementPeriod> {
+  final Value<int> id;
+  final Value<int> groupId;
+  final Value<String> title;
+  final Value<DateTime> startDate;
+  final Value<DateTime> endDate;
+  final Value<String> status;
+  final Value<String?> remoteId;
+  final Value<DateTime> createdAt;
+  const SettlementPeriodsCompanion({
+    this.id = const Value.absent(),
+    this.groupId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.startDate = const Value.absent(),
+    this.endDate = const Value.absent(),
+    this.status = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SettlementPeriodsCompanion.insert({
+    this.id = const Value.absent(),
+    required int groupId,
+    required String title,
+    required DateTime startDate,
+    required DateTime endDate,
+    this.status = const Value.absent(),
+    this.remoteId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  })  : groupId = Value(groupId),
+        title = Value(title),
+        startDate = Value(startDate),
+        endDate = Value(endDate);
+  static Insertable<SettlementPeriod> custom({
+    Expression<int>? id,
+    Expression<int>? groupId,
+    Expression<String>? title,
+    Expression<DateTime>? startDate,
+    Expression<DateTime>? endDate,
+    Expression<String>? status,
+    Expression<String>? remoteId,
+    Expression<DateTime>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (groupId != null) 'group_id': groupId,
+      if (title != null) 'title': title,
+      if (startDate != null) 'start_date': startDate,
+      if (endDate != null) 'end_date': endDate,
+      if (status != null) 'status': status,
+      if (remoteId != null) 'remote_id': remoteId,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SettlementPeriodsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? groupId,
+      Value<String>? title,
+      Value<DateTime>? startDate,
+      Value<DateTime>? endDate,
+      Value<String>? status,
+      Value<String?>? remoteId,
+      Value<DateTime>? createdAt}) {
+    return SettlementPeriodsCompanion(
+      id: id ?? this.id,
+      groupId: groupId ?? this.groupId,
+      title: title ?? this.title,
+      startDate: startDate ?? this.startDate,
+      endDate: endDate ?? this.endDate,
+      status: status ?? this.status,
+      remoteId: remoteId ?? this.remoteId,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (groupId.present) {
+      map['group_id'] = Variable<int>(groupId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (startDate.present) {
+      map['start_date'] = Variable<DateTime>(startDate.value);
+    }
+    if (endDate.present) {
+      map['end_date'] = Variable<DateTime>(endDate.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<String>(remoteId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SettlementPeriodsCompanion(')
+          ..write('id: $id, ')
+          ..write('groupId: $groupId, ')
+          ..write('title: $title, ')
+          ..write('startDate: $startDate, ')
+          ..write('endDate: $endDate, ')
+          ..write('status: $status, ')
+          ..write('remoteId: $remoteId, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PeriodMembersTable extends PeriodMembers
+    with TableInfo<$PeriodMembersTable, PeriodMember> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PeriodMembersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _periodIdMeta =
+      const VerificationMeta('periodId');
+  @override
+  late final GeneratedColumn<int> periodId = GeneratedColumn<int>(
+      'period_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES settlement_periods (id) ON DELETE CASCADE'));
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+      'name', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 100),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _colorMeta = const VerificationMeta('color');
+  @override
+  late final GeneratedColumn<String> color = GeneratedColumn<String>(
+      'color', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('#00C896'));
+  static const VerificationMeta _remoteIdMeta =
+      const VerificationMeta('remoteId');
+  @override
+  late final GeneratedColumn<int> remoteId = GeneratedColumn<int>(
+      'remote_id', aliasedName, true,
+      type: DriftSqlType.int, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, periodId, name, color, remoteId];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'period_members';
+  @override
+  VerificationContext validateIntegrity(Insertable<PeriodMember> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('period_id')) {
+      context.handle(_periodIdMeta,
+          periodId.isAcceptableOrUnknown(data['period_id']!, _periodIdMeta));
+    } else if (isInserting) {
+      context.missing(_periodIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+          _nameMeta, name.isAcceptableOrUnknown(data['name']!, _nameMeta));
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('color')) {
+      context.handle(
+          _colorMeta, color.isAcceptableOrUnknown(data['color']!, _colorMeta));
+    }
+    if (data.containsKey('remote_id')) {
+      context.handle(_remoteIdMeta,
+          remoteId.isAcceptableOrUnknown(data['remote_id']!, _remoteIdMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PeriodMember map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PeriodMember(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      periodId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}period_id'])!,
+      name: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
+      color: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}color'])!,
+      remoteId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}remote_id']),
+    );
+  }
+
+  @override
+  $PeriodMembersTable createAlias(String alias) {
+    return $PeriodMembersTable(attachedDatabase, alias);
+  }
+}
+
+class PeriodMember extends DataClass implements Insertable<PeriodMember> {
+  final int id;
+  final int periodId;
+  final String name;
+  final String color;
+  final int? remoteId;
+  const PeriodMember(
+      {required this.id,
+      required this.periodId,
+      required this.name,
+      required this.color,
+      this.remoteId});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['period_id'] = Variable<int>(periodId);
+    map['name'] = Variable<String>(name);
+    map['color'] = Variable<String>(color);
+    if (!nullToAbsent || remoteId != null) {
+      map['remote_id'] = Variable<int>(remoteId);
+    }
+    return map;
+  }
+
+  PeriodMembersCompanion toCompanion(bool nullToAbsent) {
+    return PeriodMembersCompanion(
+      id: Value(id),
+      periodId: Value(periodId),
+      name: Value(name),
+      color: Value(color),
+      remoteId: remoteId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(remoteId),
+    );
+  }
+
+  factory PeriodMember.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PeriodMember(
+      id: serializer.fromJson<int>(json['id']),
+      periodId: serializer.fromJson<int>(json['periodId']),
+      name: serializer.fromJson<String>(json['name']),
+      color: serializer.fromJson<String>(json['color']),
+      remoteId: serializer.fromJson<int?>(json['remoteId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'periodId': serializer.toJson<int>(periodId),
+      'name': serializer.toJson<String>(name),
+      'color': serializer.toJson<String>(color),
+      'remoteId': serializer.toJson<int?>(remoteId),
+    };
+  }
+
+  PeriodMember copyWith(
+          {int? id,
+          int? periodId,
+          String? name,
+          String? color,
+          Value<int?> remoteId = const Value.absent()}) =>
+      PeriodMember(
+        id: id ?? this.id,
+        periodId: periodId ?? this.periodId,
+        name: name ?? this.name,
+        color: color ?? this.color,
+        remoteId: remoteId.present ? remoteId.value : this.remoteId,
+      );
+  PeriodMember copyWithCompanion(PeriodMembersCompanion data) {
+    return PeriodMember(
+      id: data.id.present ? data.id.value : this.id,
+      periodId: data.periodId.present ? data.periodId.value : this.periodId,
+      name: data.name.present ? data.name.value : this.name,
+      color: data.color.present ? data.color.value : this.color,
+      remoteId: data.remoteId.present ? data.remoteId.value : this.remoteId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodMember(')
+          ..write('id: $id, ')
+          ..write('periodId: $periodId, ')
+          ..write('name: $name, ')
+          ..write('color: $color, ')
+          ..write('remoteId: $remoteId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, periodId, name, color, remoteId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PeriodMember &&
+          other.id == this.id &&
+          other.periodId == this.periodId &&
+          other.name == this.name &&
+          other.color == this.color &&
+          other.remoteId == this.remoteId);
+}
+
+class PeriodMembersCompanion extends UpdateCompanion<PeriodMember> {
+  final Value<int> id;
+  final Value<int> periodId;
+  final Value<String> name;
+  final Value<String> color;
+  final Value<int?> remoteId;
+  const PeriodMembersCompanion({
+    this.id = const Value.absent(),
+    this.periodId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.color = const Value.absent(),
+    this.remoteId = const Value.absent(),
+  });
+  PeriodMembersCompanion.insert({
+    this.id = const Value.absent(),
+    required int periodId,
+    required String name,
+    this.color = const Value.absent(),
+    this.remoteId = const Value.absent(),
+  })  : periodId = Value(periodId),
+        name = Value(name);
+  static Insertable<PeriodMember> custom({
+    Expression<int>? id,
+    Expression<int>? periodId,
+    Expression<String>? name,
+    Expression<String>? color,
+    Expression<int>? remoteId,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (periodId != null) 'period_id': periodId,
+      if (name != null) 'name': name,
+      if (color != null) 'color': color,
+      if (remoteId != null) 'remote_id': remoteId,
+    });
+  }
+
+  PeriodMembersCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? periodId,
+      Value<String>? name,
+      Value<String>? color,
+      Value<int?>? remoteId}) {
+    return PeriodMembersCompanion(
+      id: id ?? this.id,
+      periodId: periodId ?? this.periodId,
+      name: name ?? this.name,
+      color: color ?? this.color,
+      remoteId: remoteId ?? this.remoteId,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (periodId.present) {
+      map['period_id'] = Variable<int>(periodId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (color.present) {
+      map['color'] = Variable<String>(color.value);
+    }
+    if (remoteId.present) {
+      map['remote_id'] = Variable<int>(remoteId.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodMembersCompanion(')
+          ..write('id: $id, ')
+          ..write('periodId: $periodId, ')
+          ..write('name: $name, ')
+          ..write('color: $color, ')
+          ..write('remoteId: $remoteId')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PeriodExpensesTable extends PeriodExpenses
+    with TableInfo<$PeriodExpensesTable, PeriodExpense> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PeriodExpensesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _periodIdMeta =
+      const VerificationMeta('periodId');
+  @override
+  late final GeneratedColumn<int> periodId = GeneratedColumn<int>(
+      'period_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES settlement_periods (id) ON DELETE CASCADE'));
+  static const VerificationMeta _paidByMemberIdMeta =
+      const VerificationMeta('paidByMemberId');
+  @override
+  late final GeneratedColumn<int> paidByMemberId = GeneratedColumn<int>(
+      'paid_by_member_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES period_members (id)'));
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+      'title', aliasedName, false,
+      additionalChecks:
+          GeneratedColumn.checkTextLength(minTextLength: 1, maxTextLength: 200),
+      type: DriftSqlType.string,
+      requiredDuringInsert: true);
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+      'amount', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.0));
+  static const VerificationMeta _currencyMeta =
+      const VerificationMeta('currency');
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+      'currency', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('UZS'));
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<DateTime> date = GeneratedColumn<DateTime>(
+      'date', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: false,
+      defaultValue: currentDateAndTime);
+  static const VerificationMeta _categoryMeta =
+      const VerificationMeta('category');
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+      'category', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('other'));
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+      'note', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(''));
+  static const VerificationMeta _isRecurringMeta =
+      const VerificationMeta('isRecurring');
+  @override
+  late final GeneratedColumn<bool> isRecurring = GeneratedColumn<bool>(
+      'is_recurring', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("is_recurring" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [
+        id,
+        periodId,
+        paidByMemberId,
+        title,
+        amount,
+        currency,
+        date,
+        category,
+        note,
+        isRecurring
+      ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'period_expenses';
+  @override
+  VerificationContext validateIntegrity(Insertable<PeriodExpense> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('period_id')) {
+      context.handle(_periodIdMeta,
+          periodId.isAcceptableOrUnknown(data['period_id']!, _periodIdMeta));
+    } else if (isInserting) {
+      context.missing(_periodIdMeta);
+    }
+    if (data.containsKey('paid_by_member_id')) {
+      context.handle(
+          _paidByMemberIdMeta,
+          paidByMemberId.isAcceptableOrUnknown(
+              data['paid_by_member_id']!, _paidByMemberIdMeta));
+    } else if (isInserting) {
+      context.missing(_paidByMemberIdMeta);
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+          _titleMeta, title.isAcceptableOrUnknown(data['title']!, _titleMeta));
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(_amountMeta,
+          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
+    }
+    if (data.containsKey('currency')) {
+      context.handle(_currencyMeta,
+          currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta));
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+          _dateMeta, date.isAcceptableOrUnknown(data['date']!, _dateMeta));
+    }
+    if (data.containsKey('category')) {
+      context.handle(_categoryMeta,
+          category.isAcceptableOrUnknown(data['category']!, _categoryMeta));
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+          _noteMeta, note.isAcceptableOrUnknown(data['note']!, _noteMeta));
+    }
+    if (data.containsKey('is_recurring')) {
+      context.handle(
+          _isRecurringMeta,
+          isRecurring.isAcceptableOrUnknown(
+              data['is_recurring']!, _isRecurringMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PeriodExpense map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PeriodExpense(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      periodId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}period_id'])!,
+      paidByMemberId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}paid_by_member_id'])!,
+      title: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}title'])!,
+      amount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}amount'])!,
+      currency: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}currency'])!,
+      date: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}date'])!,
+      category: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}category'])!,
+      note: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}note'])!,
+      isRecurring: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_recurring'])!,
+    );
+  }
+
+  @override
+  $PeriodExpensesTable createAlias(String alias) {
+    return $PeriodExpensesTable(attachedDatabase, alias);
+  }
+}
+
+class PeriodExpense extends DataClass implements Insertable<PeriodExpense> {
+  final int id;
+  final int periodId;
+  final int paidByMemberId;
+  final String title;
+  final double amount;
+  final String currency;
+  final DateTime date;
+  final String category;
+  final String note;
+  final bool isRecurring;
+  const PeriodExpense(
+      {required this.id,
+      required this.periodId,
+      required this.paidByMemberId,
+      required this.title,
+      required this.amount,
+      required this.currency,
+      required this.date,
+      required this.category,
+      required this.note,
+      required this.isRecurring});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['period_id'] = Variable<int>(periodId);
+    map['paid_by_member_id'] = Variable<int>(paidByMemberId);
+    map['title'] = Variable<String>(title);
+    map['amount'] = Variable<double>(amount);
+    map['currency'] = Variable<String>(currency);
+    map['date'] = Variable<DateTime>(date);
+    map['category'] = Variable<String>(category);
+    map['note'] = Variable<String>(note);
+    map['is_recurring'] = Variable<bool>(isRecurring);
+    return map;
+  }
+
+  PeriodExpensesCompanion toCompanion(bool nullToAbsent) {
+    return PeriodExpensesCompanion(
+      id: Value(id),
+      periodId: Value(periodId),
+      paidByMemberId: Value(paidByMemberId),
+      title: Value(title),
+      amount: Value(amount),
+      currency: Value(currency),
+      date: Value(date),
+      category: Value(category),
+      note: Value(note),
+      isRecurring: Value(isRecurring),
+    );
+  }
+
+  factory PeriodExpense.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PeriodExpense(
+      id: serializer.fromJson<int>(json['id']),
+      periodId: serializer.fromJson<int>(json['periodId']),
+      paidByMemberId: serializer.fromJson<int>(json['paidByMemberId']),
+      title: serializer.fromJson<String>(json['title']),
+      amount: serializer.fromJson<double>(json['amount']),
+      currency: serializer.fromJson<String>(json['currency']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      category: serializer.fromJson<String>(json['category']),
+      note: serializer.fromJson<String>(json['note']),
+      isRecurring: serializer.fromJson<bool>(json['isRecurring']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'periodId': serializer.toJson<int>(periodId),
+      'paidByMemberId': serializer.toJson<int>(paidByMemberId),
+      'title': serializer.toJson<String>(title),
+      'amount': serializer.toJson<double>(amount),
+      'currency': serializer.toJson<String>(currency),
+      'date': serializer.toJson<DateTime>(date),
+      'category': serializer.toJson<String>(category),
+      'note': serializer.toJson<String>(note),
+      'isRecurring': serializer.toJson<bool>(isRecurring),
+    };
+  }
+
+  PeriodExpense copyWith(
+          {int? id,
+          int? periodId,
+          int? paidByMemberId,
+          String? title,
+          double? amount,
+          String? currency,
+          DateTime? date,
+          String? category,
+          String? note,
+          bool? isRecurring}) =>
+      PeriodExpense(
+        id: id ?? this.id,
+        periodId: periodId ?? this.periodId,
+        paidByMemberId: paidByMemberId ?? this.paidByMemberId,
+        title: title ?? this.title,
+        amount: amount ?? this.amount,
+        currency: currency ?? this.currency,
+        date: date ?? this.date,
+        category: category ?? this.category,
+        note: note ?? this.note,
+        isRecurring: isRecurring ?? this.isRecurring,
+      );
+  PeriodExpense copyWithCompanion(PeriodExpensesCompanion data) {
+    return PeriodExpense(
+      id: data.id.present ? data.id.value : this.id,
+      periodId: data.periodId.present ? data.periodId.value : this.periodId,
+      paidByMemberId: data.paidByMemberId.present
+          ? data.paidByMemberId.value
+          : this.paidByMemberId,
+      title: data.title.present ? data.title.value : this.title,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      date: data.date.present ? data.date.value : this.date,
+      category: data.category.present ? data.category.value : this.category,
+      note: data.note.present ? data.note.value : this.note,
+      isRecurring:
+          data.isRecurring.present ? data.isRecurring.value : this.isRecurring,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodExpense(')
+          ..write('id: $id, ')
+          ..write('periodId: $periodId, ')
+          ..write('paidByMemberId: $paidByMemberId, ')
+          ..write('title: $title, ')
+          ..write('amount: $amount, ')
+          ..write('currency: $currency, ')
+          ..write('date: $date, ')
+          ..write('category: $category, ')
+          ..write('note: $note, ')
+          ..write('isRecurring: $isRecurring')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, periodId, paidByMemberId, title, amount,
+      currency, date, category, note, isRecurring);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PeriodExpense &&
+          other.id == this.id &&
+          other.periodId == this.periodId &&
+          other.paidByMemberId == this.paidByMemberId &&
+          other.title == this.title &&
+          other.amount == this.amount &&
+          other.currency == this.currency &&
+          other.date == this.date &&
+          other.category == this.category &&
+          other.note == this.note &&
+          other.isRecurring == this.isRecurring);
+}
+
+class PeriodExpensesCompanion extends UpdateCompanion<PeriodExpense> {
+  final Value<int> id;
+  final Value<int> periodId;
+  final Value<int> paidByMemberId;
+  final Value<String> title;
+  final Value<double> amount;
+  final Value<String> currency;
+  final Value<DateTime> date;
+  final Value<String> category;
+  final Value<String> note;
+  final Value<bool> isRecurring;
+  const PeriodExpensesCompanion({
+    this.id = const Value.absent(),
+    this.periodId = const Value.absent(),
+    this.paidByMemberId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.date = const Value.absent(),
+    this.category = const Value.absent(),
+    this.note = const Value.absent(),
+    this.isRecurring = const Value.absent(),
+  });
+  PeriodExpensesCompanion.insert({
+    this.id = const Value.absent(),
+    required int periodId,
+    required int paidByMemberId,
+    required String title,
+    this.amount = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.date = const Value.absent(),
+    this.category = const Value.absent(),
+    this.note = const Value.absent(),
+    this.isRecurring = const Value.absent(),
+  })  : periodId = Value(periodId),
+        paidByMemberId = Value(paidByMemberId),
+        title = Value(title);
+  static Insertable<PeriodExpense> custom({
+    Expression<int>? id,
+    Expression<int>? periodId,
+    Expression<int>? paidByMemberId,
+    Expression<String>? title,
+    Expression<double>? amount,
+    Expression<String>? currency,
+    Expression<DateTime>? date,
+    Expression<String>? category,
+    Expression<String>? note,
+    Expression<bool>? isRecurring,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (periodId != null) 'period_id': periodId,
+      if (paidByMemberId != null) 'paid_by_member_id': paidByMemberId,
+      if (title != null) 'title': title,
+      if (amount != null) 'amount': amount,
+      if (currency != null) 'currency': currency,
+      if (date != null) 'date': date,
+      if (category != null) 'category': category,
+      if (note != null) 'note': note,
+      if (isRecurring != null) 'is_recurring': isRecurring,
+    });
+  }
+
+  PeriodExpensesCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? periodId,
+      Value<int>? paidByMemberId,
+      Value<String>? title,
+      Value<double>? amount,
+      Value<String>? currency,
+      Value<DateTime>? date,
+      Value<String>? category,
+      Value<String>? note,
+      Value<bool>? isRecurring}) {
+    return PeriodExpensesCompanion(
+      id: id ?? this.id,
+      periodId: periodId ?? this.periodId,
+      paidByMemberId: paidByMemberId ?? this.paidByMemberId,
+      title: title ?? this.title,
+      amount: amount ?? this.amount,
+      currency: currency ?? this.currency,
+      date: date ?? this.date,
+      category: category ?? this.category,
+      note: note ?? this.note,
+      isRecurring: isRecurring ?? this.isRecurring,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (periodId.present) {
+      map['period_id'] = Variable<int>(periodId.value);
+    }
+    if (paidByMemberId.present) {
+      map['paid_by_member_id'] = Variable<int>(paidByMemberId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    if (isRecurring.present) {
+      map['is_recurring'] = Variable<bool>(isRecurring.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodExpensesCompanion(')
+          ..write('id: $id, ')
+          ..write('periodId: $periodId, ')
+          ..write('paidByMemberId: $paidByMemberId, ')
+          ..write('title: $title, ')
+          ..write('amount: $amount, ')
+          ..write('currency: $currency, ')
+          ..write('date: $date, ')
+          ..write('category: $category, ')
+          ..write('note: $note, ')
+          ..write('isRecurring: $isRecurring')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PeriodExpenseSplitsTable extends PeriodExpenseSplits
+    with TableInfo<$PeriodExpenseSplitsTable, PeriodExpenseSplit> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PeriodExpenseSplitsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _expenseIdMeta =
+      const VerificationMeta('expenseId');
+  @override
+  late final GeneratedColumn<int> expenseId = GeneratedColumn<int>(
+      'expense_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES period_expenses (id) ON DELETE CASCADE'));
+  static const VerificationMeta _memberIdMeta =
+      const VerificationMeta('memberId');
+  @override
+  late final GeneratedColumn<int> memberId = GeneratedColumn<int>(
+      'member_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES period_members (id)'));
+  static const VerificationMeta _shareAmountMeta =
+      const VerificationMeta('shareAmount');
+  @override
+  late final GeneratedColumn<double> shareAmount = GeneratedColumn<double>(
+      'share_amount', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.0));
+  @override
+  List<GeneratedColumn> get $columns => [id, expenseId, memberId, shareAmount];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'period_expense_splits';
+  @override
+  VerificationContext validateIntegrity(Insertable<PeriodExpenseSplit> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('expense_id')) {
+      context.handle(_expenseIdMeta,
+          expenseId.isAcceptableOrUnknown(data['expense_id']!, _expenseIdMeta));
+    } else if (isInserting) {
+      context.missing(_expenseIdMeta);
+    }
+    if (data.containsKey('member_id')) {
+      context.handle(_memberIdMeta,
+          memberId.isAcceptableOrUnknown(data['member_id']!, _memberIdMeta));
+    } else if (isInserting) {
+      context.missing(_memberIdMeta);
+    }
+    if (data.containsKey('share_amount')) {
+      context.handle(
+          _shareAmountMeta,
+          shareAmount.isAcceptableOrUnknown(
+              data['share_amount']!, _shareAmountMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PeriodExpenseSplit map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PeriodExpenseSplit(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      expenseId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}expense_id'])!,
+      memberId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}member_id'])!,
+      shareAmount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}share_amount'])!,
+    );
+  }
+
+  @override
+  $PeriodExpenseSplitsTable createAlias(String alias) {
+    return $PeriodExpenseSplitsTable(attachedDatabase, alias);
+  }
+}
+
+class PeriodExpenseSplit extends DataClass
+    implements Insertable<PeriodExpenseSplit> {
+  final int id;
+  final int expenseId;
+  final int memberId;
+  final double shareAmount;
+  const PeriodExpenseSplit(
+      {required this.id,
+      required this.expenseId,
+      required this.memberId,
+      required this.shareAmount});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['expense_id'] = Variable<int>(expenseId);
+    map['member_id'] = Variable<int>(memberId);
+    map['share_amount'] = Variable<double>(shareAmount);
+    return map;
+  }
+
+  PeriodExpenseSplitsCompanion toCompanion(bool nullToAbsent) {
+    return PeriodExpenseSplitsCompanion(
+      id: Value(id),
+      expenseId: Value(expenseId),
+      memberId: Value(memberId),
+      shareAmount: Value(shareAmount),
+    );
+  }
+
+  factory PeriodExpenseSplit.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PeriodExpenseSplit(
+      id: serializer.fromJson<int>(json['id']),
+      expenseId: serializer.fromJson<int>(json['expenseId']),
+      memberId: serializer.fromJson<int>(json['memberId']),
+      shareAmount: serializer.fromJson<double>(json['shareAmount']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'expenseId': serializer.toJson<int>(expenseId),
+      'memberId': serializer.toJson<int>(memberId),
+      'shareAmount': serializer.toJson<double>(shareAmount),
+    };
+  }
+
+  PeriodExpenseSplit copyWith(
+          {int? id, int? expenseId, int? memberId, double? shareAmount}) =>
+      PeriodExpenseSplit(
+        id: id ?? this.id,
+        expenseId: expenseId ?? this.expenseId,
+        memberId: memberId ?? this.memberId,
+        shareAmount: shareAmount ?? this.shareAmount,
+      );
+  PeriodExpenseSplit copyWithCompanion(PeriodExpenseSplitsCompanion data) {
+    return PeriodExpenseSplit(
+      id: data.id.present ? data.id.value : this.id,
+      expenseId: data.expenseId.present ? data.expenseId.value : this.expenseId,
+      memberId: data.memberId.present ? data.memberId.value : this.memberId,
+      shareAmount:
+          data.shareAmount.present ? data.shareAmount.value : this.shareAmount,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodExpenseSplit(')
+          ..write('id: $id, ')
+          ..write('expenseId: $expenseId, ')
+          ..write('memberId: $memberId, ')
+          ..write('shareAmount: $shareAmount')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, expenseId, memberId, shareAmount);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PeriodExpenseSplit &&
+          other.id == this.id &&
+          other.expenseId == this.expenseId &&
+          other.memberId == this.memberId &&
+          other.shareAmount == this.shareAmount);
+}
+
+class PeriodExpenseSplitsCompanion extends UpdateCompanion<PeriodExpenseSplit> {
+  final Value<int> id;
+  final Value<int> expenseId;
+  final Value<int> memberId;
+  final Value<double> shareAmount;
+  const PeriodExpenseSplitsCompanion({
+    this.id = const Value.absent(),
+    this.expenseId = const Value.absent(),
+    this.memberId = const Value.absent(),
+    this.shareAmount = const Value.absent(),
+  });
+  PeriodExpenseSplitsCompanion.insert({
+    this.id = const Value.absent(),
+    required int expenseId,
+    required int memberId,
+    this.shareAmount = const Value.absent(),
+  })  : expenseId = Value(expenseId),
+        memberId = Value(memberId);
+  static Insertable<PeriodExpenseSplit> custom({
+    Expression<int>? id,
+    Expression<int>? expenseId,
+    Expression<int>? memberId,
+    Expression<double>? shareAmount,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (expenseId != null) 'expense_id': expenseId,
+      if (memberId != null) 'member_id': memberId,
+      if (shareAmount != null) 'share_amount': shareAmount,
+    });
+  }
+
+  PeriodExpenseSplitsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? expenseId,
+      Value<int>? memberId,
+      Value<double>? shareAmount}) {
+    return PeriodExpenseSplitsCompanion(
+      id: id ?? this.id,
+      expenseId: expenseId ?? this.expenseId,
+      memberId: memberId ?? this.memberId,
+      shareAmount: shareAmount ?? this.shareAmount,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (expenseId.present) {
+      map['expense_id'] = Variable<int>(expenseId.value);
+    }
+    if (memberId.present) {
+      map['member_id'] = Variable<int>(memberId.value);
+    }
+    if (shareAmount.present) {
+      map['share_amount'] = Variable<double>(shareAmount.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodExpenseSplitsCompanion(')
+          ..write('id: $id, ')
+          ..write('expenseId: $expenseId, ')
+          ..write('memberId: $memberId, ')
+          ..write('shareAmount: $shareAmount')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PeriodConfirmationsTable extends PeriodConfirmations
+    with TableInfo<$PeriodConfirmationsTable, PeriodConfirmation> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PeriodConfirmationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _periodIdMeta =
+      const VerificationMeta('periodId');
+  @override
+  late final GeneratedColumn<int> periodId = GeneratedColumn<int>(
+      'period_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES settlement_periods (id) ON DELETE CASCADE'));
+  static const VerificationMeta _memberIdMeta =
+      const VerificationMeta('memberId');
+  @override
+  late final GeneratedColumn<int> memberId = GeneratedColumn<int>(
+      'member_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES period_members (id)'));
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+      'status', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      defaultValue: const Constant('pending'));
+  static const VerificationMeta _disputeReasonMeta =
+      const VerificationMeta('disputeReason');
+  @override
+  late final GeneratedColumn<String> disputeReason = GeneratedColumn<String>(
+      'dispute_reason', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  static const VerificationMeta _respondedAtMeta =
+      const VerificationMeta('respondedAt');
+  @override
+  late final GeneratedColumn<DateTime> respondedAt = GeneratedColumn<DateTime>(
+      'responded_at', aliasedName, true,
+      type: DriftSqlType.dateTime, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, periodId, memberId, status, disputeReason, respondedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'period_confirmations';
+  @override
+  VerificationContext validateIntegrity(Insertable<PeriodConfirmation> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('period_id')) {
+      context.handle(_periodIdMeta,
+          periodId.isAcceptableOrUnknown(data['period_id']!, _periodIdMeta));
+    } else if (isInserting) {
+      context.missing(_periodIdMeta);
+    }
+    if (data.containsKey('member_id')) {
+      context.handle(_memberIdMeta,
+          memberId.isAcceptableOrUnknown(data['member_id']!, _memberIdMeta));
+    } else if (isInserting) {
+      context.missing(_memberIdMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(_statusMeta,
+          status.isAcceptableOrUnknown(data['status']!, _statusMeta));
+    }
+    if (data.containsKey('dispute_reason')) {
+      context.handle(
+          _disputeReasonMeta,
+          disputeReason.isAcceptableOrUnknown(
+              data['dispute_reason']!, _disputeReasonMeta));
+    }
+    if (data.containsKey('responded_at')) {
+      context.handle(
+          _respondedAtMeta,
+          respondedAt.isAcceptableOrUnknown(
+              data['responded_at']!, _respondedAtMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PeriodConfirmation map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PeriodConfirmation(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      periodId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}period_id'])!,
+      memberId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}member_id'])!,
+      status: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}status'])!,
+      disputeReason: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}dispute_reason']),
+      respondedAt: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}responded_at']),
+    );
+  }
+
+  @override
+  $PeriodConfirmationsTable createAlias(String alias) {
+    return $PeriodConfirmationsTable(attachedDatabase, alias);
+  }
+}
+
+class PeriodConfirmation extends DataClass
+    implements Insertable<PeriodConfirmation> {
+  final int id;
+  final int periodId;
+  final int memberId;
+  final String status;
+  final String? disputeReason;
+  final DateTime? respondedAt;
+  const PeriodConfirmation(
+      {required this.id,
+      required this.periodId,
+      required this.memberId,
+      required this.status,
+      this.disputeReason,
+      this.respondedAt});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['period_id'] = Variable<int>(periodId);
+    map['member_id'] = Variable<int>(memberId);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || disputeReason != null) {
+      map['dispute_reason'] = Variable<String>(disputeReason);
+    }
+    if (!nullToAbsent || respondedAt != null) {
+      map['responded_at'] = Variable<DateTime>(respondedAt);
+    }
+    return map;
+  }
+
+  PeriodConfirmationsCompanion toCompanion(bool nullToAbsent) {
+    return PeriodConfirmationsCompanion(
+      id: Value(id),
+      periodId: Value(periodId),
+      memberId: Value(memberId),
+      status: Value(status),
+      disputeReason: disputeReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(disputeReason),
+      respondedAt: respondedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(respondedAt),
+    );
+  }
+
+  factory PeriodConfirmation.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PeriodConfirmation(
+      id: serializer.fromJson<int>(json['id']),
+      periodId: serializer.fromJson<int>(json['periodId']),
+      memberId: serializer.fromJson<int>(json['memberId']),
+      status: serializer.fromJson<String>(json['status']),
+      disputeReason: serializer.fromJson<String?>(json['disputeReason']),
+      respondedAt: serializer.fromJson<DateTime?>(json['respondedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'periodId': serializer.toJson<int>(periodId),
+      'memberId': serializer.toJson<int>(memberId),
+      'status': serializer.toJson<String>(status),
+      'disputeReason': serializer.toJson<String?>(disputeReason),
+      'respondedAt': serializer.toJson<DateTime?>(respondedAt),
+    };
+  }
+
+  PeriodConfirmation copyWith(
+          {int? id,
+          int? periodId,
+          int? memberId,
+          String? status,
+          Value<String?> disputeReason = const Value.absent(),
+          Value<DateTime?> respondedAt = const Value.absent()}) =>
+      PeriodConfirmation(
+        id: id ?? this.id,
+        periodId: periodId ?? this.periodId,
+        memberId: memberId ?? this.memberId,
+        status: status ?? this.status,
+        disputeReason:
+            disputeReason.present ? disputeReason.value : this.disputeReason,
+        respondedAt: respondedAt.present ? respondedAt.value : this.respondedAt,
+      );
+  PeriodConfirmation copyWithCompanion(PeriodConfirmationsCompanion data) {
+    return PeriodConfirmation(
+      id: data.id.present ? data.id.value : this.id,
+      periodId: data.periodId.present ? data.periodId.value : this.periodId,
+      memberId: data.memberId.present ? data.memberId.value : this.memberId,
+      status: data.status.present ? data.status.value : this.status,
+      disputeReason: data.disputeReason.present
+          ? data.disputeReason.value
+          : this.disputeReason,
+      respondedAt:
+          data.respondedAt.present ? data.respondedAt.value : this.respondedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodConfirmation(')
+          ..write('id: $id, ')
+          ..write('periodId: $periodId, ')
+          ..write('memberId: $memberId, ')
+          ..write('status: $status, ')
+          ..write('disputeReason: $disputeReason, ')
+          ..write('respondedAt: $respondedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, periodId, memberId, status, disputeReason, respondedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PeriodConfirmation &&
+          other.id == this.id &&
+          other.periodId == this.periodId &&
+          other.memberId == this.memberId &&
+          other.status == this.status &&
+          other.disputeReason == this.disputeReason &&
+          other.respondedAt == this.respondedAt);
+}
+
+class PeriodConfirmationsCompanion extends UpdateCompanion<PeriodConfirmation> {
+  final Value<int> id;
+  final Value<int> periodId;
+  final Value<int> memberId;
+  final Value<String> status;
+  final Value<String?> disputeReason;
+  final Value<DateTime?> respondedAt;
+  const PeriodConfirmationsCompanion({
+    this.id = const Value.absent(),
+    this.periodId = const Value.absent(),
+    this.memberId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.disputeReason = const Value.absent(),
+    this.respondedAt = const Value.absent(),
+  });
+  PeriodConfirmationsCompanion.insert({
+    this.id = const Value.absent(),
+    required int periodId,
+    required int memberId,
+    this.status = const Value.absent(),
+    this.disputeReason = const Value.absent(),
+    this.respondedAt = const Value.absent(),
+  })  : periodId = Value(periodId),
+        memberId = Value(memberId);
+  static Insertable<PeriodConfirmation> custom({
+    Expression<int>? id,
+    Expression<int>? periodId,
+    Expression<int>? memberId,
+    Expression<String>? status,
+    Expression<String>? disputeReason,
+    Expression<DateTime>? respondedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (periodId != null) 'period_id': periodId,
+      if (memberId != null) 'member_id': memberId,
+      if (status != null) 'status': status,
+      if (disputeReason != null) 'dispute_reason': disputeReason,
+      if (respondedAt != null) 'responded_at': respondedAt,
+    });
+  }
+
+  PeriodConfirmationsCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? periodId,
+      Value<int>? memberId,
+      Value<String>? status,
+      Value<String?>? disputeReason,
+      Value<DateTime?>? respondedAt}) {
+    return PeriodConfirmationsCompanion(
+      id: id ?? this.id,
+      periodId: periodId ?? this.periodId,
+      memberId: memberId ?? this.memberId,
+      status: status ?? this.status,
+      disputeReason: disputeReason ?? this.disputeReason,
+      respondedAt: respondedAt ?? this.respondedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (periodId.present) {
+      map['period_id'] = Variable<int>(periodId.value);
+    }
+    if (memberId.present) {
+      map['member_id'] = Variable<int>(memberId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (disputeReason.present) {
+      map['dispute_reason'] = Variable<String>(disputeReason.value);
+    }
+    if (respondedAt.present) {
+      map['responded_at'] = Variable<DateTime>(respondedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodConfirmationsCompanion(')
+          ..write('id: $id, ')
+          ..write('periodId: $periodId, ')
+          ..write('memberId: $memberId, ')
+          ..write('status: $status, ')
+          ..write('disputeReason: $disputeReason, ')
+          ..write('respondedAt: $respondedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PeriodTransfersTable extends PeriodTransfers
+    with TableInfo<$PeriodTransfersTable, PeriodTransfer> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PeriodTransfersTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'));
+  static const VerificationMeta _periodIdMeta =
+      const VerificationMeta('periodId');
+  @override
+  late final GeneratedColumn<int> periodId = GeneratedColumn<int>(
+      'period_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES settlement_periods (id) ON DELETE CASCADE'));
+  static const VerificationMeta _fromMemberIdMeta =
+      const VerificationMeta('fromMemberId');
+  @override
+  late final GeneratedColumn<int> fromMemberId = GeneratedColumn<int>(
+      'from_member_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES period_members (id)'));
+  static const VerificationMeta _toMemberIdMeta =
+      const VerificationMeta('toMemberId');
+  @override
+  late final GeneratedColumn<int> toMemberId = GeneratedColumn<int>(
+      'to_member_id', aliasedName, false,
+      type: DriftSqlType.int,
+      requiredDuringInsert: true,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('REFERENCES period_members (id)'));
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+      'amount', aliasedName, false,
+      type: DriftSqlType.double,
+      requiredDuringInsert: false,
+      defaultValue: const Constant(0.0));
+  static const VerificationMeta _isPaidMeta = const VerificationMeta('isPaid');
+  @override
+  late final GeneratedColumn<bool> isPaid = GeneratedColumn<bool>(
+      'is_paid', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints:
+          GeneratedColumn.constraintIsAlways('CHECK ("is_paid" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns =>
+      [id, periodId, fromMemberId, toMemberId, amount, isPaid];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'period_transfers';
+  @override
+  VerificationContext validateIntegrity(Insertable<PeriodTransfer> instance,
+      {bool isInserting = false}) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('period_id')) {
+      context.handle(_periodIdMeta,
+          periodId.isAcceptableOrUnknown(data['period_id']!, _periodIdMeta));
+    } else if (isInserting) {
+      context.missing(_periodIdMeta);
+    }
+    if (data.containsKey('from_member_id')) {
+      context.handle(
+          _fromMemberIdMeta,
+          fromMemberId.isAcceptableOrUnknown(
+              data['from_member_id']!, _fromMemberIdMeta));
+    } else if (isInserting) {
+      context.missing(_fromMemberIdMeta);
+    }
+    if (data.containsKey('to_member_id')) {
+      context.handle(
+          _toMemberIdMeta,
+          toMemberId.isAcceptableOrUnknown(
+              data['to_member_id']!, _toMemberIdMeta));
+    } else if (isInserting) {
+      context.missing(_toMemberIdMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(_amountMeta,
+          amount.isAcceptableOrUnknown(data['amount']!, _amountMeta));
+    }
+    if (data.containsKey('is_paid')) {
+      context.handle(_isPaidMeta,
+          isPaid.isAcceptableOrUnknown(data['is_paid']!, _isPaidMeta));
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PeriodTransfer map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PeriodTransfer(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      periodId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}period_id'])!,
+      fromMemberId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}from_member_id'])!,
+      toMemberId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}to_member_id'])!,
+      amount: attachedDatabase.typeMapping
+          .read(DriftSqlType.double, data['${effectivePrefix}amount'])!,
+      isPaid: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}is_paid'])!,
+    );
+  }
+
+  @override
+  $PeriodTransfersTable createAlias(String alias) {
+    return $PeriodTransfersTable(attachedDatabase, alias);
+  }
+}
+
+class PeriodTransfer extends DataClass implements Insertable<PeriodTransfer> {
+  final int id;
+  final int periodId;
+  final int fromMemberId;
+  final int toMemberId;
+  final double amount;
+  final bool isPaid;
+  const PeriodTransfer(
+      {required this.id,
+      required this.periodId,
+      required this.fromMemberId,
+      required this.toMemberId,
+      required this.amount,
+      required this.isPaid});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['period_id'] = Variable<int>(periodId);
+    map['from_member_id'] = Variable<int>(fromMemberId);
+    map['to_member_id'] = Variable<int>(toMemberId);
+    map['amount'] = Variable<double>(amount);
+    map['is_paid'] = Variable<bool>(isPaid);
+    return map;
+  }
+
+  PeriodTransfersCompanion toCompanion(bool nullToAbsent) {
+    return PeriodTransfersCompanion(
+      id: Value(id),
+      periodId: Value(periodId),
+      fromMemberId: Value(fromMemberId),
+      toMemberId: Value(toMemberId),
+      amount: Value(amount),
+      isPaid: Value(isPaid),
+    );
+  }
+
+  factory PeriodTransfer.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PeriodTransfer(
+      id: serializer.fromJson<int>(json['id']),
+      periodId: serializer.fromJson<int>(json['periodId']),
+      fromMemberId: serializer.fromJson<int>(json['fromMemberId']),
+      toMemberId: serializer.fromJson<int>(json['toMemberId']),
+      amount: serializer.fromJson<double>(json['amount']),
+      isPaid: serializer.fromJson<bool>(json['isPaid']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'periodId': serializer.toJson<int>(periodId),
+      'fromMemberId': serializer.toJson<int>(fromMemberId),
+      'toMemberId': serializer.toJson<int>(toMemberId),
+      'amount': serializer.toJson<double>(amount),
+      'isPaid': serializer.toJson<bool>(isPaid),
+    };
+  }
+
+  PeriodTransfer copyWith(
+          {int? id,
+          int? periodId,
+          int? fromMemberId,
+          int? toMemberId,
+          double? amount,
+          bool? isPaid}) =>
+      PeriodTransfer(
+        id: id ?? this.id,
+        periodId: periodId ?? this.periodId,
+        fromMemberId: fromMemberId ?? this.fromMemberId,
+        toMemberId: toMemberId ?? this.toMemberId,
+        amount: amount ?? this.amount,
+        isPaid: isPaid ?? this.isPaid,
+      );
+  PeriodTransfer copyWithCompanion(PeriodTransfersCompanion data) {
+    return PeriodTransfer(
+      id: data.id.present ? data.id.value : this.id,
+      periodId: data.periodId.present ? data.periodId.value : this.periodId,
+      fromMemberId: data.fromMemberId.present
+          ? data.fromMemberId.value
+          : this.fromMemberId,
+      toMemberId:
+          data.toMemberId.present ? data.toMemberId.value : this.toMemberId,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      isPaid: data.isPaid.present ? data.isPaid.value : this.isPaid,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodTransfer(')
+          ..write('id: $id, ')
+          ..write('periodId: $periodId, ')
+          ..write('fromMemberId: $fromMemberId, ')
+          ..write('toMemberId: $toMemberId, ')
+          ..write('amount: $amount, ')
+          ..write('isPaid: $isPaid')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, periodId, fromMemberId, toMemberId, amount, isPaid);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PeriodTransfer &&
+          other.id == this.id &&
+          other.periodId == this.periodId &&
+          other.fromMemberId == this.fromMemberId &&
+          other.toMemberId == this.toMemberId &&
+          other.amount == this.amount &&
+          other.isPaid == this.isPaid);
+}
+
+class PeriodTransfersCompanion extends UpdateCompanion<PeriodTransfer> {
+  final Value<int> id;
+  final Value<int> periodId;
+  final Value<int> fromMemberId;
+  final Value<int> toMemberId;
+  final Value<double> amount;
+  final Value<bool> isPaid;
+  const PeriodTransfersCompanion({
+    this.id = const Value.absent(),
+    this.periodId = const Value.absent(),
+    this.fromMemberId = const Value.absent(),
+    this.toMemberId = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.isPaid = const Value.absent(),
+  });
+  PeriodTransfersCompanion.insert({
+    this.id = const Value.absent(),
+    required int periodId,
+    required int fromMemberId,
+    required int toMemberId,
+    this.amount = const Value.absent(),
+    this.isPaid = const Value.absent(),
+  })  : periodId = Value(periodId),
+        fromMemberId = Value(fromMemberId),
+        toMemberId = Value(toMemberId);
+  static Insertable<PeriodTransfer> custom({
+    Expression<int>? id,
+    Expression<int>? periodId,
+    Expression<int>? fromMemberId,
+    Expression<int>? toMemberId,
+    Expression<double>? amount,
+    Expression<bool>? isPaid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (periodId != null) 'period_id': periodId,
+      if (fromMemberId != null) 'from_member_id': fromMemberId,
+      if (toMemberId != null) 'to_member_id': toMemberId,
+      if (amount != null) 'amount': amount,
+      if (isPaid != null) 'is_paid': isPaid,
+    });
+  }
+
+  PeriodTransfersCompanion copyWith(
+      {Value<int>? id,
+      Value<int>? periodId,
+      Value<int>? fromMemberId,
+      Value<int>? toMemberId,
+      Value<double>? amount,
+      Value<bool>? isPaid}) {
+    return PeriodTransfersCompanion(
+      id: id ?? this.id,
+      periodId: periodId ?? this.periodId,
+      fromMemberId: fromMemberId ?? this.fromMemberId,
+      toMemberId: toMemberId ?? this.toMemberId,
+      amount: amount ?? this.amount,
+      isPaid: isPaid ?? this.isPaid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (periodId.present) {
+      map['period_id'] = Variable<int>(periodId.value);
+    }
+    if (fromMemberId.present) {
+      map['from_member_id'] = Variable<int>(fromMemberId.value);
+    }
+    if (toMemberId.present) {
+      map['to_member_id'] = Variable<int>(toMemberId.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (isPaid.present) {
+      map['is_paid'] = Variable<bool>(isPaid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PeriodTransfersCompanion(')
+          ..write('id: $id, ')
+          ..write('periodId: $periodId, ')
+          ..write('fromMemberId: $fromMemberId, ')
+          ..write('toMemberId: $toMemberId, ')
+          ..write('amount: $amount, ')
+          ..write('isPaid: $isPaid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7633,6 +9823,16 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DebtEventsTable debtEvents = $DebtEventsTable(this);
   late final $KnownContactsTable knownContacts = $KnownContactsTable(this);
   late final $SyncQueueTable syncQueue = $SyncQueueTable(this);
+  late final $SettlementPeriodsTable settlementPeriods =
+      $SettlementPeriodsTable(this);
+  late final $PeriodMembersTable periodMembers = $PeriodMembersTable(this);
+  late final $PeriodExpensesTable periodExpenses = $PeriodExpensesTable(this);
+  late final $PeriodExpenseSplitsTable periodExpenseSplits =
+      $PeriodExpenseSplitsTable(this);
+  late final $PeriodConfirmationsTable periodConfirmations =
+      $PeriodConfirmationsTable(this);
+  late final $PeriodTransfersTable periodTransfers =
+      $PeriodTransfersTable(this);
   late final AccountsDao accountsDao = AccountsDao(this as AppDatabase);
   late final TransactionsDao transactionsDao =
       TransactionsDao(this as AppDatabase);
@@ -7644,6 +9844,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final IslamicContractsDao islamicContractsDao =
       IslamicContractsDao(this as AppDatabase);
   late final HouseDao houseDao = HouseDao(this as AppDatabase);
+  late final SettlementDao settlementDao = SettlementDao(this as AppDatabase);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7667,7 +9868,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         debtSignatures,
         debtEvents,
         knownContacts,
-        syncQueue
+        syncQueue,
+        settlementPeriods,
+        periodMembers,
+        periodExpenses,
+        periodExpenseSplits,
+        periodConfirmations,
+        periodTransfers
       ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules(
@@ -7733,6 +9940,48 @@ abstract class _$AppDatabase extends GeneratedDatabase {
                 limitUpdateKind: UpdateKind.delete),
             result: [
               TableUpdate('sync_queue', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('house_groups',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('settlement_periods', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('settlement_periods',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('period_members', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('settlement_periods',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('period_expenses', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('period_expenses',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('period_expense_splits', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('settlement_periods',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('period_confirmations', kind: UpdateKind.delete),
+            ],
+          ),
+          WritePropagation(
+            on: TableUpdateQuery.onTableName('settlement_periods',
+                limitUpdateKind: UpdateKind.delete),
+            result: [
+              TableUpdate('period_transfers', kind: UpdateKind.delete),
             ],
           ),
         ],
@@ -10994,6 +13243,23 @@ final class $$HouseGroupsTableReferences
     return ProcessedTableManager(
         manager.$state.copyWith(prefetchedData: cache));
   }
+
+  static MultiTypedResultKey<$SettlementPeriodsTable, List<SettlementPeriod>>
+      _settlementPeriodsRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.settlementPeriods,
+              aliasName: $_aliasNameGenerator(
+                  db.houseGroups.id, db.settlementPeriods.groupId));
+
+  $$SettlementPeriodsTableProcessedTableManager get settlementPeriodsRefs {
+    final manager =
+        $$SettlementPeriodsTableTableManager($_db, $_db.settlementPeriods)
+            .filter((f) => f.groupId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_settlementPeriodsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
 }
 
 class $$HouseGroupsTableFilterComposer
@@ -11093,6 +13359,27 @@ class $$HouseGroupsTableFilterComposer
             $$ShoppingItemsTableFilterComposer(
               $db: $db,
               $table: $db.shoppingItems,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> settlementPeriodsRefs(
+      Expression<bool> Function($$SettlementPeriodsTableFilterComposer f) f) {
+    final $$SettlementPeriodsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.groupId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableFilterComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
               $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
               joinBuilder: joinBuilder,
               $removeJoinBuilderFromRootComposer:
@@ -11228,6 +13515,28 @@ class $$HouseGroupsTableAnnotationComposer
             ));
     return f(composer);
   }
+
+  Expression<T> settlementPeriodsRefs<T extends Object>(
+      Expression<T> Function($$SettlementPeriodsTableAnnotationComposer a) f) {
+    final $$SettlementPeriodsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.settlementPeriods,
+            getReferencedColumn: (t) => t.groupId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$SettlementPeriodsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.settlementPeriods,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
 }
 
 class $$HouseGroupsTableTableManager extends RootTableManager<
@@ -11245,7 +13554,8 @@ class $$HouseGroupsTableTableManager extends RootTableManager<
         {bool houseMembersRefs,
         bool houseExpensesRefs,
         bool houseSettlementsRefs,
-        bool shoppingItemsRefs})> {
+        bool shoppingItemsRefs,
+        bool settlementPeriodsRefs})> {
   $$HouseGroupsTableTableManager(_$AppDatabase db, $HouseGroupsTable table)
       : super(TableManagerState(
           db: db,
@@ -11290,14 +13600,16 @@ class $$HouseGroupsTableTableManager extends RootTableManager<
               {houseMembersRefs = false,
               houseExpensesRefs = false,
               houseSettlementsRefs = false,
-              shoppingItemsRefs = false}) {
+              shoppingItemsRefs = false,
+              settlementPeriodsRefs = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [
                 if (houseMembersRefs) db.houseMembers,
                 if (houseExpensesRefs) db.houseExpenses,
                 if (houseSettlementsRefs) db.houseSettlements,
-                if (shoppingItemsRefs) db.shoppingItems
+                if (shoppingItemsRefs) db.shoppingItems,
+                if (settlementPeriodsRefs) db.settlementPeriods
               ],
               addJoins: null,
               getPrefetchedDataCallback: (items) async {
@@ -11353,6 +13665,19 @@ class $$HouseGroupsTableTableManager extends RootTableManager<
                         referencedItemsForCurrentItem: (item,
                                 referencedItems) =>
                             referencedItems.where((e) => e.groupId == item.id),
+                        typedResults: items),
+                  if (settlementPeriodsRefs)
+                    await $_getPrefetchedData<HouseGroup, $HouseGroupsTable,
+                            SettlementPeriod>(
+                        currentTable: table,
+                        referencedTable: $$HouseGroupsTableReferences
+                            ._settlementPeriodsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$HouseGroupsTableReferences(db, table, p0)
+                                .settlementPeriodsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.groupId == item.id),
                         typedResults: items)
                 ];
               },
@@ -11376,7 +13701,8 @@ typedef $$HouseGroupsTableProcessedTableManager = ProcessedTableManager<
         {bool houseMembersRefs,
         bool houseExpensesRefs,
         bool houseSettlementsRefs,
-        bool shoppingItemsRefs})>;
+        bool shoppingItemsRefs,
+        bool settlementPeriodsRefs})>;
 typedef $$HouseMembersTableCreateCompanionBuilder = HouseMembersCompanion
     Function({
   Value<int> id,
@@ -14614,6 +16940,2798 @@ typedef $$SyncQueueTableProcessedTableManager = ProcessedTableManager<
     (SyncQueueData, $$SyncQueueTableReferences),
     SyncQueueData,
     PrefetchHooks Function({bool debtId})>;
+typedef $$SettlementPeriodsTableCreateCompanionBuilder
+    = SettlementPeriodsCompanion Function({
+  Value<int> id,
+  required int groupId,
+  required String title,
+  required DateTime startDate,
+  required DateTime endDate,
+  Value<String> status,
+  Value<String?> remoteId,
+  Value<DateTime> createdAt,
+});
+typedef $$SettlementPeriodsTableUpdateCompanionBuilder
+    = SettlementPeriodsCompanion Function({
+  Value<int> id,
+  Value<int> groupId,
+  Value<String> title,
+  Value<DateTime> startDate,
+  Value<DateTime> endDate,
+  Value<String> status,
+  Value<String?> remoteId,
+  Value<DateTime> createdAt,
+});
+
+final class $$SettlementPeriodsTableReferences extends BaseReferences<
+    _$AppDatabase, $SettlementPeriodsTable, SettlementPeriod> {
+  $$SettlementPeriodsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $HouseGroupsTable _groupIdTable(_$AppDatabase db) =>
+      db.houseGroups.createAlias($_aliasNameGenerator(
+          db.settlementPeriods.groupId, db.houseGroups.id));
+
+  $$HouseGroupsTableProcessedTableManager get groupId {
+    final $_column = $_itemColumn<int>('group_id')!;
+
+    final manager = $$HouseGroupsTableTableManager($_db, $_db.houseGroups)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_groupIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$PeriodMembersTable, List<PeriodMember>>
+      _periodMembersRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.periodMembers,
+              aliasName: $_aliasNameGenerator(
+                  db.settlementPeriods.id, db.periodMembers.periodId));
+
+  $$PeriodMembersTableProcessedTableManager get periodMembersRefs {
+    final manager = $$PeriodMembersTableTableManager($_db, $_db.periodMembers)
+        .filter((f) => f.periodId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_periodMembersRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$PeriodExpensesTable, List<PeriodExpense>>
+      _periodExpensesRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.periodExpenses,
+              aliasName: $_aliasNameGenerator(
+                  db.settlementPeriods.id, db.periodExpenses.periodId));
+
+  $$PeriodExpensesTableProcessedTableManager get periodExpensesRefs {
+    final manager = $$PeriodExpensesTableTableManager($_db, $_db.periodExpenses)
+        .filter((f) => f.periodId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_periodExpensesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$PeriodConfirmationsTable,
+      List<PeriodConfirmation>> _periodConfirmationsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.periodConfirmations,
+          aliasName: $_aliasNameGenerator(
+              db.settlementPeriods.id, db.periodConfirmations.periodId));
+
+  $$PeriodConfirmationsTableProcessedTableManager get periodConfirmationsRefs {
+    final manager =
+        $$PeriodConfirmationsTableTableManager($_db, $_db.periodConfirmations)
+            .filter((f) => f.periodId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_periodConfirmationsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$PeriodTransfersTable, List<PeriodTransfer>>
+      _periodTransfersRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.periodTransfers,
+              aliasName: $_aliasNameGenerator(
+                  db.settlementPeriods.id, db.periodTransfers.periodId));
+
+  $$PeriodTransfersTableProcessedTableManager get periodTransfersRefs {
+    final manager =
+        $$PeriodTransfersTableTableManager($_db, $_db.periodTransfers)
+            .filter((f) => f.periodId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_periodTransfersRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$SettlementPeriodsTableFilterComposer
+    extends Composer<_$AppDatabase, $SettlementPeriodsTable> {
+  $$SettlementPeriodsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get startDate => $composableBuilder(
+      column: $table.startDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get remoteId => $composableBuilder(
+      column: $table.remoteId, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnFilters(column));
+
+  $$HouseGroupsTableFilterComposer get groupId {
+    final $$HouseGroupsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.groupId,
+        referencedTable: $db.houseGroups,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$HouseGroupsTableFilterComposer(
+              $db: $db,
+              $table: $db.houseGroups,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> periodMembersRefs(
+      Expression<bool> Function($$PeriodMembersTableFilterComposer f) f) {
+    final $$PeriodMembersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.periodId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableFilterComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> periodExpensesRefs(
+      Expression<bool> Function($$PeriodExpensesTableFilterComposer f) f) {
+    final $$PeriodExpensesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodExpenses,
+        getReferencedColumn: (t) => t.periodId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpensesTableFilterComposer(
+              $db: $db,
+              $table: $db.periodExpenses,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> periodConfirmationsRefs(
+      Expression<bool> Function($$PeriodConfirmationsTableFilterComposer f) f) {
+    final $$PeriodConfirmationsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodConfirmations,
+        getReferencedColumn: (t) => t.periodId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodConfirmationsTableFilterComposer(
+              $db: $db,
+              $table: $db.periodConfirmations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> periodTransfersRefs(
+      Expression<bool> Function($$PeriodTransfersTableFilterComposer f) f) {
+    final $$PeriodTransfersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodTransfers,
+        getReferencedColumn: (t) => t.periodId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodTransfersTableFilterComposer(
+              $db: $db,
+              $table: $db.periodTransfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$SettlementPeriodsTableOrderingComposer
+    extends Composer<_$AppDatabase, $SettlementPeriodsTable> {
+  $$SettlementPeriodsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get startDate => $composableBuilder(
+      column: $table.startDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get endDate => $composableBuilder(
+      column: $table.endDate, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get remoteId => $composableBuilder(
+      column: $table.remoteId, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+      column: $table.createdAt, builder: (column) => ColumnOrderings(column));
+
+  $$HouseGroupsTableOrderingComposer get groupId {
+    final $$HouseGroupsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.groupId,
+        referencedTable: $db.houseGroups,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$HouseGroupsTableOrderingComposer(
+              $db: $db,
+              $table: $db.houseGroups,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$SettlementPeriodsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SettlementPeriodsTable> {
+  $$SettlementPeriodsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get startDate =>
+      $composableBuilder(column: $table.startDate, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get endDate =>
+      $composableBuilder(column: $table.endDate, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$HouseGroupsTableAnnotationComposer get groupId {
+    final $$HouseGroupsTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.groupId,
+        referencedTable: $db.houseGroups,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$HouseGroupsTableAnnotationComposer(
+              $db: $db,
+              $table: $db.houseGroups,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> periodMembersRefs<T extends Object>(
+      Expression<T> Function($$PeriodMembersTableAnnotationComposer a) f) {
+    final $$PeriodMembersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.periodId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> periodExpensesRefs<T extends Object>(
+      Expression<T> Function($$PeriodExpensesTableAnnotationComposer a) f) {
+    final $$PeriodExpensesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodExpenses,
+        getReferencedColumn: (t) => t.periodId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpensesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodExpenses,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> periodConfirmationsRefs<T extends Object>(
+      Expression<T> Function($$PeriodConfirmationsTableAnnotationComposer a)
+          f) {
+    final $$PeriodConfirmationsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.periodConfirmations,
+            getReferencedColumn: (t) => t.periodId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$PeriodConfirmationsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.periodConfirmations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+
+  Expression<T> periodTransfersRefs<T extends Object>(
+      Expression<T> Function($$PeriodTransfersTableAnnotationComposer a) f) {
+    final $$PeriodTransfersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodTransfers,
+        getReferencedColumn: (t) => t.periodId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodTransfersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodTransfers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$SettlementPeriodsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $SettlementPeriodsTable,
+    SettlementPeriod,
+    $$SettlementPeriodsTableFilterComposer,
+    $$SettlementPeriodsTableOrderingComposer,
+    $$SettlementPeriodsTableAnnotationComposer,
+    $$SettlementPeriodsTableCreateCompanionBuilder,
+    $$SettlementPeriodsTableUpdateCompanionBuilder,
+    (SettlementPeriod, $$SettlementPeriodsTableReferences),
+    SettlementPeriod,
+    PrefetchHooks Function(
+        {bool groupId,
+        bool periodMembersRefs,
+        bool periodExpensesRefs,
+        bool periodConfirmationsRefs,
+        bool periodTransfersRefs})> {
+  $$SettlementPeriodsTableTableManager(
+      _$AppDatabase db, $SettlementPeriodsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SettlementPeriodsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SettlementPeriodsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SettlementPeriodsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> groupId = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<DateTime> startDate = const Value.absent(),
+            Value<DateTime> endDate = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> remoteId = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              SettlementPeriodsCompanion(
+            id: id,
+            groupId: groupId,
+            title: title,
+            startDate: startDate,
+            endDate: endDate,
+            status: status,
+            remoteId: remoteId,
+            createdAt: createdAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int groupId,
+            required String title,
+            required DateTime startDate,
+            required DateTime endDate,
+            Value<String> status = const Value.absent(),
+            Value<String?> remoteId = const Value.absent(),
+            Value<DateTime> createdAt = const Value.absent(),
+          }) =>
+              SettlementPeriodsCompanion.insert(
+            id: id,
+            groupId: groupId,
+            title: title,
+            startDate: startDate,
+            endDate: endDate,
+            status: status,
+            remoteId: remoteId,
+            createdAt: createdAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$SettlementPeriodsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {groupId = false,
+              periodMembersRefs = false,
+              periodExpensesRefs = false,
+              periodConfirmationsRefs = false,
+              periodTransfersRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (periodMembersRefs) db.periodMembers,
+                if (periodExpensesRefs) db.periodExpenses,
+                if (periodConfirmationsRefs) db.periodConfirmations,
+                if (periodTransfersRefs) db.periodTransfers
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (groupId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.groupId,
+                    referencedTable:
+                        $$SettlementPeriodsTableReferences._groupIdTable(db),
+                    referencedColumn:
+                        $$SettlementPeriodsTableReferences._groupIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (periodMembersRefs)
+                    await $_getPrefetchedData<SettlementPeriod,
+                            $SettlementPeriodsTable, PeriodMember>(
+                        currentTable: table,
+                        referencedTable: $$SettlementPeriodsTableReferences
+                            ._periodMembersRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SettlementPeriodsTableReferences(db, table, p0)
+                                .periodMembersRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.periodId == item.id),
+                        typedResults: items),
+                  if (periodExpensesRefs)
+                    await $_getPrefetchedData<SettlementPeriod,
+                            $SettlementPeriodsTable, PeriodExpense>(
+                        currentTable: table,
+                        referencedTable: $$SettlementPeriodsTableReferences
+                            ._periodExpensesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SettlementPeriodsTableReferences(db, table, p0)
+                                .periodExpensesRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.periodId == item.id),
+                        typedResults: items),
+                  if (periodConfirmationsRefs)
+                    await $_getPrefetchedData<SettlementPeriod,
+                            $SettlementPeriodsTable, PeriodConfirmation>(
+                        currentTable: table,
+                        referencedTable: $$SettlementPeriodsTableReferences
+                            ._periodConfirmationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SettlementPeriodsTableReferences(db, table, p0)
+                                .periodConfirmationsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.periodId == item.id),
+                        typedResults: items),
+                  if (periodTransfersRefs)
+                    await $_getPrefetchedData<SettlementPeriod,
+                            $SettlementPeriodsTable, PeriodTransfer>(
+                        currentTable: table,
+                        referencedTable: $$SettlementPeriodsTableReferences
+                            ._periodTransfersRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$SettlementPeriodsTableReferences(db, table, p0)
+                                .periodTransfersRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.periodId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$SettlementPeriodsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $SettlementPeriodsTable,
+    SettlementPeriod,
+    $$SettlementPeriodsTableFilterComposer,
+    $$SettlementPeriodsTableOrderingComposer,
+    $$SettlementPeriodsTableAnnotationComposer,
+    $$SettlementPeriodsTableCreateCompanionBuilder,
+    $$SettlementPeriodsTableUpdateCompanionBuilder,
+    (SettlementPeriod, $$SettlementPeriodsTableReferences),
+    SettlementPeriod,
+    PrefetchHooks Function(
+        {bool groupId,
+        bool periodMembersRefs,
+        bool periodExpensesRefs,
+        bool periodConfirmationsRefs,
+        bool periodTransfersRefs})>;
+typedef $$PeriodMembersTableCreateCompanionBuilder = PeriodMembersCompanion
+    Function({
+  Value<int> id,
+  required int periodId,
+  required String name,
+  Value<String> color,
+  Value<int?> remoteId,
+});
+typedef $$PeriodMembersTableUpdateCompanionBuilder = PeriodMembersCompanion
+    Function({
+  Value<int> id,
+  Value<int> periodId,
+  Value<String> name,
+  Value<String> color,
+  Value<int?> remoteId,
+});
+
+final class $$PeriodMembersTableReferences
+    extends BaseReferences<_$AppDatabase, $PeriodMembersTable, PeriodMember> {
+  $$PeriodMembersTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SettlementPeriodsTable _periodIdTable(_$AppDatabase db) =>
+      db.settlementPeriods.createAlias($_aliasNameGenerator(
+          db.periodMembers.periodId, db.settlementPeriods.id));
+
+  $$SettlementPeriodsTableProcessedTableManager get periodId {
+    final $_column = $_itemColumn<int>('period_id')!;
+
+    final manager =
+        $$SettlementPeriodsTableTableManager($_db, $_db.settlementPeriods)
+            .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_periodIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$PeriodExpensesTable, List<PeriodExpense>>
+      _periodExpensesRefsTable(_$AppDatabase db) =>
+          MultiTypedResultKey.fromTable(db.periodExpenses,
+              aliasName: $_aliasNameGenerator(
+                  db.periodMembers.id, db.periodExpenses.paidByMemberId));
+
+  $$PeriodExpensesTableProcessedTableManager get periodExpensesRefs {
+    final manager = $$PeriodExpensesTableTableManager($_db, $_db.periodExpenses)
+        .filter((f) => f.paidByMemberId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_periodExpensesRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$PeriodExpenseSplitsTable,
+      List<PeriodExpenseSplit>> _periodExpenseSplitsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.periodExpenseSplits,
+          aliasName: $_aliasNameGenerator(
+              db.periodMembers.id, db.periodExpenseSplits.memberId));
+
+  $$PeriodExpenseSplitsTableProcessedTableManager get periodExpenseSplitsRefs {
+    final manager =
+        $$PeriodExpenseSplitsTableTableManager($_db, $_db.periodExpenseSplits)
+            .filter((f) => f.memberId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_periodExpenseSplitsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+
+  static MultiTypedResultKey<$PeriodConfirmationsTable,
+      List<PeriodConfirmation>> _periodConfirmationsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.periodConfirmations,
+          aliasName: $_aliasNameGenerator(
+              db.periodMembers.id, db.periodConfirmations.memberId));
+
+  $$PeriodConfirmationsTableProcessedTableManager get periodConfirmationsRefs {
+    final manager =
+        $$PeriodConfirmationsTableTableManager($_db, $_db.periodConfirmations)
+            .filter((f) => f.memberId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_periodConfirmationsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$PeriodMembersTableFilterComposer
+    extends Composer<_$AppDatabase, $PeriodMembersTable> {
+  $$PeriodMembersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<int> get remoteId => $composableBuilder(
+      column: $table.remoteId, builder: (column) => ColumnFilters(column));
+
+  $$SettlementPeriodsTableFilterComposer get periodId {
+    final $$SettlementPeriodsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.periodId,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableFilterComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> periodExpensesRefs(
+      Expression<bool> Function($$PeriodExpensesTableFilterComposer f) f) {
+    final $$PeriodExpensesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodExpenses,
+        getReferencedColumn: (t) => t.paidByMemberId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpensesTableFilterComposer(
+              $db: $db,
+              $table: $db.periodExpenses,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> periodExpenseSplitsRefs(
+      Expression<bool> Function($$PeriodExpenseSplitsTableFilterComposer f) f) {
+    final $$PeriodExpenseSplitsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodExpenseSplits,
+        getReferencedColumn: (t) => t.memberId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpenseSplitsTableFilterComposer(
+              $db: $db,
+              $table: $db.periodExpenseSplits,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<bool> periodConfirmationsRefs(
+      Expression<bool> Function($$PeriodConfirmationsTableFilterComposer f) f) {
+    final $$PeriodConfirmationsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodConfirmations,
+        getReferencedColumn: (t) => t.memberId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodConfirmationsTableFilterComposer(
+              $db: $db,
+              $table: $db.periodConfirmations,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$PeriodMembersTableOrderingComposer
+    extends Composer<_$AppDatabase, $PeriodMembersTable> {
+  $$PeriodMembersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get name => $composableBuilder(
+      column: $table.name, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get color => $composableBuilder(
+      column: $table.color, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<int> get remoteId => $composableBuilder(
+      column: $table.remoteId, builder: (column) => ColumnOrderings(column));
+
+  $$SettlementPeriodsTableOrderingComposer get periodId {
+    final $$SettlementPeriodsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.periodId,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableOrderingComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodMembersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PeriodMembersTable> {
+  $$PeriodMembersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get color =>
+      $composableBuilder(column: $table.color, builder: (column) => column);
+
+  GeneratedColumn<int> get remoteId =>
+      $composableBuilder(column: $table.remoteId, builder: (column) => column);
+
+  $$SettlementPeriodsTableAnnotationComposer get periodId {
+    final $$SettlementPeriodsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.periodId,
+            referencedTable: $db.settlementPeriods,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$SettlementPeriodsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.settlementPeriods,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  Expression<T> periodExpensesRefs<T extends Object>(
+      Expression<T> Function($$PeriodExpensesTableAnnotationComposer a) f) {
+    final $$PeriodExpensesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodExpenses,
+        getReferencedColumn: (t) => t.paidByMemberId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpensesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodExpenses,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+
+  Expression<T> periodExpenseSplitsRefs<T extends Object>(
+      Expression<T> Function($$PeriodExpenseSplitsTableAnnotationComposer a)
+          f) {
+    final $$PeriodExpenseSplitsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.periodExpenseSplits,
+            getReferencedColumn: (t) => t.memberId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$PeriodExpenseSplitsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.periodExpenseSplits,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+
+  Expression<T> periodConfirmationsRefs<T extends Object>(
+      Expression<T> Function($$PeriodConfirmationsTableAnnotationComposer a)
+          f) {
+    final $$PeriodConfirmationsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.periodConfirmations,
+            getReferencedColumn: (t) => t.memberId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$PeriodConfirmationsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.periodConfirmations,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$PeriodMembersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $PeriodMembersTable,
+    PeriodMember,
+    $$PeriodMembersTableFilterComposer,
+    $$PeriodMembersTableOrderingComposer,
+    $$PeriodMembersTableAnnotationComposer,
+    $$PeriodMembersTableCreateCompanionBuilder,
+    $$PeriodMembersTableUpdateCompanionBuilder,
+    (PeriodMember, $$PeriodMembersTableReferences),
+    PeriodMember,
+    PrefetchHooks Function(
+        {bool periodId,
+        bool periodExpensesRefs,
+        bool periodExpenseSplitsRefs,
+        bool periodConfirmationsRefs})> {
+  $$PeriodMembersTableTableManager(_$AppDatabase db, $PeriodMembersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PeriodMembersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PeriodMembersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PeriodMembersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> periodId = const Value.absent(),
+            Value<String> name = const Value.absent(),
+            Value<String> color = const Value.absent(),
+            Value<int?> remoteId = const Value.absent(),
+          }) =>
+              PeriodMembersCompanion(
+            id: id,
+            periodId: periodId,
+            name: name,
+            color: color,
+            remoteId: remoteId,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int periodId,
+            required String name,
+            Value<String> color = const Value.absent(),
+            Value<int?> remoteId = const Value.absent(),
+          }) =>
+              PeriodMembersCompanion.insert(
+            id: id,
+            periodId: periodId,
+            name: name,
+            color: color,
+            remoteId: remoteId,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$PeriodMembersTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {periodId = false,
+              periodExpensesRefs = false,
+              periodExpenseSplitsRefs = false,
+              periodConfirmationsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (periodExpensesRefs) db.periodExpenses,
+                if (periodExpenseSplitsRefs) db.periodExpenseSplits,
+                if (periodConfirmationsRefs) db.periodConfirmations
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (periodId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.periodId,
+                    referencedTable:
+                        $$PeriodMembersTableReferences._periodIdTable(db),
+                    referencedColumn:
+                        $$PeriodMembersTableReferences._periodIdTable(db).id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (periodExpensesRefs)
+                    await $_getPrefetchedData<PeriodMember, $PeriodMembersTable,
+                            PeriodExpense>(
+                        currentTable: table,
+                        referencedTable: $$PeriodMembersTableReferences
+                            ._periodExpensesRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$PeriodMembersTableReferences(db, table, p0)
+                                .periodExpensesRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.paidByMemberId == item.id),
+                        typedResults: items),
+                  if (periodExpenseSplitsRefs)
+                    await $_getPrefetchedData<PeriodMember, $PeriodMembersTable,
+                            PeriodExpenseSplit>(
+                        currentTable: table,
+                        referencedTable: $$PeriodMembersTableReferences
+                            ._periodExpenseSplitsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$PeriodMembersTableReferences(db, table, p0)
+                                .periodExpenseSplitsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.memberId == item.id),
+                        typedResults: items),
+                  if (periodConfirmationsRefs)
+                    await $_getPrefetchedData<PeriodMember, $PeriodMembersTable,
+                            PeriodConfirmation>(
+                        currentTable: table,
+                        referencedTable: $$PeriodMembersTableReferences
+                            ._periodConfirmationsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$PeriodMembersTableReferences(db, table, p0)
+                                .periodConfirmationsRefs,
+                        referencedItemsForCurrentItem: (item,
+                                referencedItems) =>
+                            referencedItems.where((e) => e.memberId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$PeriodMembersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $PeriodMembersTable,
+    PeriodMember,
+    $$PeriodMembersTableFilterComposer,
+    $$PeriodMembersTableOrderingComposer,
+    $$PeriodMembersTableAnnotationComposer,
+    $$PeriodMembersTableCreateCompanionBuilder,
+    $$PeriodMembersTableUpdateCompanionBuilder,
+    (PeriodMember, $$PeriodMembersTableReferences),
+    PeriodMember,
+    PrefetchHooks Function(
+        {bool periodId,
+        bool periodExpensesRefs,
+        bool periodExpenseSplitsRefs,
+        bool periodConfirmationsRefs})>;
+typedef $$PeriodExpensesTableCreateCompanionBuilder = PeriodExpensesCompanion
+    Function({
+  Value<int> id,
+  required int periodId,
+  required int paidByMemberId,
+  required String title,
+  Value<double> amount,
+  Value<String> currency,
+  Value<DateTime> date,
+  Value<String> category,
+  Value<String> note,
+  Value<bool> isRecurring,
+});
+typedef $$PeriodExpensesTableUpdateCompanionBuilder = PeriodExpensesCompanion
+    Function({
+  Value<int> id,
+  Value<int> periodId,
+  Value<int> paidByMemberId,
+  Value<String> title,
+  Value<double> amount,
+  Value<String> currency,
+  Value<DateTime> date,
+  Value<String> category,
+  Value<String> note,
+  Value<bool> isRecurring,
+});
+
+final class $$PeriodExpensesTableReferences
+    extends BaseReferences<_$AppDatabase, $PeriodExpensesTable, PeriodExpense> {
+  $$PeriodExpensesTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SettlementPeriodsTable _periodIdTable(_$AppDatabase db) =>
+      db.settlementPeriods.createAlias($_aliasNameGenerator(
+          db.periodExpenses.periodId, db.settlementPeriods.id));
+
+  $$SettlementPeriodsTableProcessedTableManager get periodId {
+    final $_column = $_itemColumn<int>('period_id')!;
+
+    final manager =
+        $$SettlementPeriodsTableTableManager($_db, $_db.settlementPeriods)
+            .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_periodIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $PeriodMembersTable _paidByMemberIdTable(_$AppDatabase db) =>
+      db.periodMembers.createAlias($_aliasNameGenerator(
+          db.periodExpenses.paidByMemberId, db.periodMembers.id));
+
+  $$PeriodMembersTableProcessedTableManager get paidByMemberId {
+    final $_column = $_itemColumn<int>('paid_by_member_id')!;
+
+    final manager = $$PeriodMembersTableTableManager($_db, $_db.periodMembers)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_paidByMemberIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static MultiTypedResultKey<$PeriodExpenseSplitsTable,
+      List<PeriodExpenseSplit>> _periodExpenseSplitsRefsTable(
+          _$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(db.periodExpenseSplits,
+          aliasName: $_aliasNameGenerator(
+              db.periodExpenses.id, db.periodExpenseSplits.expenseId));
+
+  $$PeriodExpenseSplitsTableProcessedTableManager get periodExpenseSplitsRefs {
+    final manager =
+        $$PeriodExpenseSplitsTableTableManager($_db, $_db.periodExpenseSplits)
+            .filter((f) => f.expenseId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache =
+        $_typedResult.readTableOrNull(_periodExpenseSplitsRefsTable($_db));
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: cache));
+  }
+}
+
+class $$PeriodExpensesTableFilterComposer
+    extends Composer<_$AppDatabase, $PeriodExpensesTable> {
+  $$PeriodExpensesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get currency => $composableBuilder(
+      column: $table.currency, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => ColumnFilters(column));
+
+  $$SettlementPeriodsTableFilterComposer get periodId {
+    final $$SettlementPeriodsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.periodId,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableFilterComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableFilterComposer get paidByMemberId {
+    final $$PeriodMembersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.paidByMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableFilterComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<bool> periodExpenseSplitsRefs(
+      Expression<bool> Function($$PeriodExpenseSplitsTableFilterComposer f) f) {
+    final $$PeriodExpenseSplitsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.id,
+        referencedTable: $db.periodExpenseSplits,
+        getReferencedColumn: (t) => t.expenseId,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpenseSplitsTableFilterComposer(
+              $db: $db,
+              $table: $db.periodExpenseSplits,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return f(composer);
+  }
+}
+
+class $$PeriodExpensesTableOrderingComposer
+    extends Composer<_$AppDatabase, $PeriodExpensesTable> {
+  $$PeriodExpensesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get title => $composableBuilder(
+      column: $table.title, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+      column: $table.currency, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get date => $composableBuilder(
+      column: $table.date, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get category => $composableBuilder(
+      column: $table.category, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get note => $composableBuilder(
+      column: $table.note, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => ColumnOrderings(column));
+
+  $$SettlementPeriodsTableOrderingComposer get periodId {
+    final $$SettlementPeriodsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.periodId,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableOrderingComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableOrderingComposer get paidByMemberId {
+    final $$PeriodMembersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.paidByMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableOrderingComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodExpensesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PeriodExpensesTable> {
+  $$PeriodExpensesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  GeneratedColumn<bool> get isRecurring => $composableBuilder(
+      column: $table.isRecurring, builder: (column) => column);
+
+  $$SettlementPeriodsTableAnnotationComposer get periodId {
+    final $$SettlementPeriodsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.periodId,
+            referencedTable: $db.settlementPeriods,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$SettlementPeriodsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.settlementPeriods,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$PeriodMembersTableAnnotationComposer get paidByMemberId {
+    final $$PeriodMembersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.paidByMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  Expression<T> periodExpenseSplitsRefs<T extends Object>(
+      Expression<T> Function($$PeriodExpenseSplitsTableAnnotationComposer a)
+          f) {
+    final $$PeriodExpenseSplitsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.id,
+            referencedTable: $db.periodExpenseSplits,
+            getReferencedColumn: (t) => t.expenseId,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$PeriodExpenseSplitsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.periodExpenseSplits,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return f(composer);
+  }
+}
+
+class $$PeriodExpensesTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $PeriodExpensesTable,
+    PeriodExpense,
+    $$PeriodExpensesTableFilterComposer,
+    $$PeriodExpensesTableOrderingComposer,
+    $$PeriodExpensesTableAnnotationComposer,
+    $$PeriodExpensesTableCreateCompanionBuilder,
+    $$PeriodExpensesTableUpdateCompanionBuilder,
+    (PeriodExpense, $$PeriodExpensesTableReferences),
+    PeriodExpense,
+    PrefetchHooks Function(
+        {bool periodId, bool paidByMemberId, bool periodExpenseSplitsRefs})> {
+  $$PeriodExpensesTableTableManager(
+      _$AppDatabase db, $PeriodExpensesTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PeriodExpensesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PeriodExpensesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PeriodExpensesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> periodId = const Value.absent(),
+            Value<int> paidByMemberId = const Value.absent(),
+            Value<String> title = const Value.absent(),
+            Value<double> amount = const Value.absent(),
+            Value<String> currency = const Value.absent(),
+            Value<DateTime> date = const Value.absent(),
+            Value<String> category = const Value.absent(),
+            Value<String> note = const Value.absent(),
+            Value<bool> isRecurring = const Value.absent(),
+          }) =>
+              PeriodExpensesCompanion(
+            id: id,
+            periodId: periodId,
+            paidByMemberId: paidByMemberId,
+            title: title,
+            amount: amount,
+            currency: currency,
+            date: date,
+            category: category,
+            note: note,
+            isRecurring: isRecurring,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int periodId,
+            required int paidByMemberId,
+            required String title,
+            Value<double> amount = const Value.absent(),
+            Value<String> currency = const Value.absent(),
+            Value<DateTime> date = const Value.absent(),
+            Value<String> category = const Value.absent(),
+            Value<String> note = const Value.absent(),
+            Value<bool> isRecurring = const Value.absent(),
+          }) =>
+              PeriodExpensesCompanion.insert(
+            id: id,
+            periodId: periodId,
+            paidByMemberId: paidByMemberId,
+            title: title,
+            amount: amount,
+            currency: currency,
+            date: date,
+            category: category,
+            note: note,
+            isRecurring: isRecurring,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$PeriodExpensesTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {periodId = false,
+              paidByMemberId = false,
+              periodExpenseSplitsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [
+                if (periodExpenseSplitsRefs) db.periodExpenseSplits
+              ],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (periodId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.periodId,
+                    referencedTable:
+                        $$PeriodExpensesTableReferences._periodIdTable(db),
+                    referencedColumn:
+                        $$PeriodExpensesTableReferences._periodIdTable(db).id,
+                  ) as T;
+                }
+                if (paidByMemberId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.paidByMemberId,
+                    referencedTable: $$PeriodExpensesTableReferences
+                        ._paidByMemberIdTable(db),
+                    referencedColumn: $$PeriodExpensesTableReferences
+                        ._paidByMemberIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (periodExpenseSplitsRefs)
+                    await $_getPrefetchedData<PeriodExpense,
+                            $PeriodExpensesTable, PeriodExpenseSplit>(
+                        currentTable: table,
+                        referencedTable: $$PeriodExpensesTableReferences
+                            ._periodExpenseSplitsRefsTable(db),
+                        managerFromTypedResult: (p0) =>
+                            $$PeriodExpensesTableReferences(db, table, p0)
+                                .periodExpenseSplitsRefs,
+                        referencedItemsForCurrentItem:
+                            (item, referencedItems) => referencedItems
+                                .where((e) => e.expenseId == item.id),
+                        typedResults: items)
+                ];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$PeriodExpensesTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $PeriodExpensesTable,
+    PeriodExpense,
+    $$PeriodExpensesTableFilterComposer,
+    $$PeriodExpensesTableOrderingComposer,
+    $$PeriodExpensesTableAnnotationComposer,
+    $$PeriodExpensesTableCreateCompanionBuilder,
+    $$PeriodExpensesTableUpdateCompanionBuilder,
+    (PeriodExpense, $$PeriodExpensesTableReferences),
+    PeriodExpense,
+    PrefetchHooks Function(
+        {bool periodId, bool paidByMemberId, bool periodExpenseSplitsRefs})>;
+typedef $$PeriodExpenseSplitsTableCreateCompanionBuilder
+    = PeriodExpenseSplitsCompanion Function({
+  Value<int> id,
+  required int expenseId,
+  required int memberId,
+  Value<double> shareAmount,
+});
+typedef $$PeriodExpenseSplitsTableUpdateCompanionBuilder
+    = PeriodExpenseSplitsCompanion Function({
+  Value<int> id,
+  Value<int> expenseId,
+  Value<int> memberId,
+  Value<double> shareAmount,
+});
+
+final class $$PeriodExpenseSplitsTableReferences extends BaseReferences<
+    _$AppDatabase, $PeriodExpenseSplitsTable, PeriodExpenseSplit> {
+  $$PeriodExpenseSplitsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $PeriodExpensesTable _expenseIdTable(_$AppDatabase db) =>
+      db.periodExpenses.createAlias($_aliasNameGenerator(
+          db.periodExpenseSplits.expenseId, db.periodExpenses.id));
+
+  $$PeriodExpensesTableProcessedTableManager get expenseId {
+    final $_column = $_itemColumn<int>('expense_id')!;
+
+    final manager = $$PeriodExpensesTableTableManager($_db, $_db.periodExpenses)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_expenseIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $PeriodMembersTable _memberIdTable(_$AppDatabase db) =>
+      db.periodMembers.createAlias($_aliasNameGenerator(
+          db.periodExpenseSplits.memberId, db.periodMembers.id));
+
+  $$PeriodMembersTableProcessedTableManager get memberId {
+    final $_column = $_itemColumn<int>('member_id')!;
+
+    final manager = $$PeriodMembersTableTableManager($_db, $_db.periodMembers)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_memberIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$PeriodExpenseSplitsTableFilterComposer
+    extends Composer<_$AppDatabase, $PeriodExpenseSplitsTable> {
+  $$PeriodExpenseSplitsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get shareAmount => $composableBuilder(
+      column: $table.shareAmount, builder: (column) => ColumnFilters(column));
+
+  $$PeriodExpensesTableFilterComposer get expenseId {
+    final $$PeriodExpensesTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.expenseId,
+        referencedTable: $db.periodExpenses,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpensesTableFilterComposer(
+              $db: $db,
+              $table: $db.periodExpenses,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableFilterComposer get memberId {
+    final $$PeriodMembersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.memberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableFilterComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodExpenseSplitsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PeriodExpenseSplitsTable> {
+  $$PeriodExpenseSplitsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get shareAmount => $composableBuilder(
+      column: $table.shareAmount, builder: (column) => ColumnOrderings(column));
+
+  $$PeriodExpensesTableOrderingComposer get expenseId {
+    final $$PeriodExpensesTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.expenseId,
+        referencedTable: $db.periodExpenses,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpensesTableOrderingComposer(
+              $db: $db,
+              $table: $db.periodExpenses,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableOrderingComposer get memberId {
+    final $$PeriodMembersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.memberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableOrderingComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodExpenseSplitsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PeriodExpenseSplitsTable> {
+  $$PeriodExpenseSplitsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get shareAmount => $composableBuilder(
+      column: $table.shareAmount, builder: (column) => column);
+
+  $$PeriodExpensesTableAnnotationComposer get expenseId {
+    final $$PeriodExpensesTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.expenseId,
+        referencedTable: $db.periodExpenses,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodExpensesTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodExpenses,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableAnnotationComposer get memberId {
+    final $$PeriodMembersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.memberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodExpenseSplitsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $PeriodExpenseSplitsTable,
+    PeriodExpenseSplit,
+    $$PeriodExpenseSplitsTableFilterComposer,
+    $$PeriodExpenseSplitsTableOrderingComposer,
+    $$PeriodExpenseSplitsTableAnnotationComposer,
+    $$PeriodExpenseSplitsTableCreateCompanionBuilder,
+    $$PeriodExpenseSplitsTableUpdateCompanionBuilder,
+    (PeriodExpenseSplit, $$PeriodExpenseSplitsTableReferences),
+    PeriodExpenseSplit,
+    PrefetchHooks Function({bool expenseId, bool memberId})> {
+  $$PeriodExpenseSplitsTableTableManager(
+      _$AppDatabase db, $PeriodExpenseSplitsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PeriodExpenseSplitsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PeriodExpenseSplitsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PeriodExpenseSplitsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> expenseId = const Value.absent(),
+            Value<int> memberId = const Value.absent(),
+            Value<double> shareAmount = const Value.absent(),
+          }) =>
+              PeriodExpenseSplitsCompanion(
+            id: id,
+            expenseId: expenseId,
+            memberId: memberId,
+            shareAmount: shareAmount,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int expenseId,
+            required int memberId,
+            Value<double> shareAmount = const Value.absent(),
+          }) =>
+              PeriodExpenseSplitsCompanion.insert(
+            id: id,
+            expenseId: expenseId,
+            memberId: memberId,
+            shareAmount: shareAmount,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$PeriodExpenseSplitsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({expenseId = false, memberId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (expenseId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.expenseId,
+                    referencedTable: $$PeriodExpenseSplitsTableReferences
+                        ._expenseIdTable(db),
+                    referencedColumn: $$PeriodExpenseSplitsTableReferences
+                        ._expenseIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (memberId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.memberId,
+                    referencedTable:
+                        $$PeriodExpenseSplitsTableReferences._memberIdTable(db),
+                    referencedColumn: $$PeriodExpenseSplitsTableReferences
+                        ._memberIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$PeriodExpenseSplitsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $PeriodExpenseSplitsTable,
+    PeriodExpenseSplit,
+    $$PeriodExpenseSplitsTableFilterComposer,
+    $$PeriodExpenseSplitsTableOrderingComposer,
+    $$PeriodExpenseSplitsTableAnnotationComposer,
+    $$PeriodExpenseSplitsTableCreateCompanionBuilder,
+    $$PeriodExpenseSplitsTableUpdateCompanionBuilder,
+    (PeriodExpenseSplit, $$PeriodExpenseSplitsTableReferences),
+    PeriodExpenseSplit,
+    PrefetchHooks Function({bool expenseId, bool memberId})>;
+typedef $$PeriodConfirmationsTableCreateCompanionBuilder
+    = PeriodConfirmationsCompanion Function({
+  Value<int> id,
+  required int periodId,
+  required int memberId,
+  Value<String> status,
+  Value<String?> disputeReason,
+  Value<DateTime?> respondedAt,
+});
+typedef $$PeriodConfirmationsTableUpdateCompanionBuilder
+    = PeriodConfirmationsCompanion Function({
+  Value<int> id,
+  Value<int> periodId,
+  Value<int> memberId,
+  Value<String> status,
+  Value<String?> disputeReason,
+  Value<DateTime?> respondedAt,
+});
+
+final class $$PeriodConfirmationsTableReferences extends BaseReferences<
+    _$AppDatabase, $PeriodConfirmationsTable, PeriodConfirmation> {
+  $$PeriodConfirmationsTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SettlementPeriodsTable _periodIdTable(_$AppDatabase db) =>
+      db.settlementPeriods.createAlias($_aliasNameGenerator(
+          db.periodConfirmations.periodId, db.settlementPeriods.id));
+
+  $$SettlementPeriodsTableProcessedTableManager get periodId {
+    final $_column = $_itemColumn<int>('period_id')!;
+
+    final manager =
+        $$SettlementPeriodsTableTableManager($_db, $_db.settlementPeriods)
+            .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_periodIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $PeriodMembersTable _memberIdTable(_$AppDatabase db) =>
+      db.periodMembers.createAlias($_aliasNameGenerator(
+          db.periodConfirmations.memberId, db.periodMembers.id));
+
+  $$PeriodMembersTableProcessedTableManager get memberId {
+    final $_column = $_itemColumn<int>('member_id')!;
+
+    final manager = $$PeriodMembersTableTableManager($_db, $_db.periodMembers)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_memberIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$PeriodConfirmationsTableFilterComposer
+    extends Composer<_$AppDatabase, $PeriodConfirmationsTable> {
+  $$PeriodConfirmationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get disputeReason => $composableBuilder(
+      column: $table.disputeReason, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<DateTime> get respondedAt => $composableBuilder(
+      column: $table.respondedAt, builder: (column) => ColumnFilters(column));
+
+  $$SettlementPeriodsTableFilterComposer get periodId {
+    final $$SettlementPeriodsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.periodId,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableFilterComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableFilterComposer get memberId {
+    final $$PeriodMembersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.memberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableFilterComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodConfirmationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PeriodConfirmationsTable> {
+  $$PeriodConfirmationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get status => $composableBuilder(
+      column: $table.status, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get disputeReason => $composableBuilder(
+      column: $table.disputeReason,
+      builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<DateTime> get respondedAt => $composableBuilder(
+      column: $table.respondedAt, builder: (column) => ColumnOrderings(column));
+
+  $$SettlementPeriodsTableOrderingComposer get periodId {
+    final $$SettlementPeriodsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.periodId,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableOrderingComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableOrderingComposer get memberId {
+    final $$PeriodMembersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.memberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableOrderingComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodConfirmationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PeriodConfirmationsTable> {
+  $$PeriodConfirmationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get disputeReason => $composableBuilder(
+      column: $table.disputeReason, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get respondedAt => $composableBuilder(
+      column: $table.respondedAt, builder: (column) => column);
+
+  $$SettlementPeriodsTableAnnotationComposer get periodId {
+    final $$SettlementPeriodsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.periodId,
+            referencedTable: $db.settlementPeriods,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$SettlementPeriodsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.settlementPeriods,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$PeriodMembersTableAnnotationComposer get memberId {
+    final $$PeriodMembersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.memberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodConfirmationsTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $PeriodConfirmationsTable,
+    PeriodConfirmation,
+    $$PeriodConfirmationsTableFilterComposer,
+    $$PeriodConfirmationsTableOrderingComposer,
+    $$PeriodConfirmationsTableAnnotationComposer,
+    $$PeriodConfirmationsTableCreateCompanionBuilder,
+    $$PeriodConfirmationsTableUpdateCompanionBuilder,
+    (PeriodConfirmation, $$PeriodConfirmationsTableReferences),
+    PeriodConfirmation,
+    PrefetchHooks Function({bool periodId, bool memberId})> {
+  $$PeriodConfirmationsTableTableManager(
+      _$AppDatabase db, $PeriodConfirmationsTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PeriodConfirmationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PeriodConfirmationsTableOrderingComposer(
+                  $db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PeriodConfirmationsTableAnnotationComposer(
+                  $db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> periodId = const Value.absent(),
+            Value<int> memberId = const Value.absent(),
+            Value<String> status = const Value.absent(),
+            Value<String?> disputeReason = const Value.absent(),
+            Value<DateTime?> respondedAt = const Value.absent(),
+          }) =>
+              PeriodConfirmationsCompanion(
+            id: id,
+            periodId: periodId,
+            memberId: memberId,
+            status: status,
+            disputeReason: disputeReason,
+            respondedAt: respondedAt,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int periodId,
+            required int memberId,
+            Value<String> status = const Value.absent(),
+            Value<String?> disputeReason = const Value.absent(),
+            Value<DateTime?> respondedAt = const Value.absent(),
+          }) =>
+              PeriodConfirmationsCompanion.insert(
+            id: id,
+            periodId: periodId,
+            memberId: memberId,
+            status: status,
+            disputeReason: disputeReason,
+            respondedAt: respondedAt,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$PeriodConfirmationsTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: ({periodId = false, memberId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (periodId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.periodId,
+                    referencedTable:
+                        $$PeriodConfirmationsTableReferences._periodIdTable(db),
+                    referencedColumn: $$PeriodConfirmationsTableReferences
+                        ._periodIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (memberId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.memberId,
+                    referencedTable:
+                        $$PeriodConfirmationsTableReferences._memberIdTable(db),
+                    referencedColumn: $$PeriodConfirmationsTableReferences
+                        ._memberIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$PeriodConfirmationsTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $PeriodConfirmationsTable,
+    PeriodConfirmation,
+    $$PeriodConfirmationsTableFilterComposer,
+    $$PeriodConfirmationsTableOrderingComposer,
+    $$PeriodConfirmationsTableAnnotationComposer,
+    $$PeriodConfirmationsTableCreateCompanionBuilder,
+    $$PeriodConfirmationsTableUpdateCompanionBuilder,
+    (PeriodConfirmation, $$PeriodConfirmationsTableReferences),
+    PeriodConfirmation,
+    PrefetchHooks Function({bool periodId, bool memberId})>;
+typedef $$PeriodTransfersTableCreateCompanionBuilder = PeriodTransfersCompanion
+    Function({
+  Value<int> id,
+  required int periodId,
+  required int fromMemberId,
+  required int toMemberId,
+  Value<double> amount,
+  Value<bool> isPaid,
+});
+typedef $$PeriodTransfersTableUpdateCompanionBuilder = PeriodTransfersCompanion
+    Function({
+  Value<int> id,
+  Value<int> periodId,
+  Value<int> fromMemberId,
+  Value<int> toMemberId,
+  Value<double> amount,
+  Value<bool> isPaid,
+});
+
+final class $$PeriodTransfersTableReferences extends BaseReferences<
+    _$AppDatabase, $PeriodTransfersTable, PeriodTransfer> {
+  $$PeriodTransfersTableReferences(
+      super.$_db, super.$_table, super.$_typedResult);
+
+  static $SettlementPeriodsTable _periodIdTable(_$AppDatabase db) =>
+      db.settlementPeriods.createAlias($_aliasNameGenerator(
+          db.periodTransfers.periodId, db.settlementPeriods.id));
+
+  $$SettlementPeriodsTableProcessedTableManager get periodId {
+    final $_column = $_itemColumn<int>('period_id')!;
+
+    final manager =
+        $$SettlementPeriodsTableTableManager($_db, $_db.settlementPeriods)
+            .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_periodIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $PeriodMembersTable _fromMemberIdTable(_$AppDatabase db) =>
+      db.periodMembers.createAlias($_aliasNameGenerator(
+          db.periodTransfers.fromMemberId, db.periodMembers.id));
+
+  $$PeriodMembersTableProcessedTableManager get fromMemberId {
+    final $_column = $_itemColumn<int>('from_member_id')!;
+
+    final manager = $$PeriodMembersTableTableManager($_db, $_db.periodMembers)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_fromMemberIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+
+  static $PeriodMembersTable _toMemberIdTable(_$AppDatabase db) =>
+      db.periodMembers.createAlias($_aliasNameGenerator(
+          db.periodTransfers.toMemberId, db.periodMembers.id));
+
+  $$PeriodMembersTableProcessedTableManager get toMemberId {
+    final $_column = $_itemColumn<int>('to_member_id')!;
+
+    final manager = $$PeriodMembersTableTableManager($_db, $_db.periodMembers)
+        .filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_toMemberIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+        manager.$state.copyWith(prefetchedData: [item]));
+  }
+}
+
+class $$PeriodTransfersTableFilterComposer
+    extends Composer<_$AppDatabase, $PeriodTransfersTable> {
+  $$PeriodTransfersTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<bool> get isPaid => $composableBuilder(
+      column: $table.isPaid, builder: (column) => ColumnFilters(column));
+
+  $$SettlementPeriodsTableFilterComposer get periodId {
+    final $$SettlementPeriodsTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.periodId,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableFilterComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableFilterComposer get fromMemberId {
+    final $$PeriodMembersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.fromMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableFilterComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableFilterComposer get toMemberId {
+    final $$PeriodMembersTableFilterComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.toMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableFilterComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodTransfersTableOrderingComposer
+    extends Composer<_$AppDatabase, $PeriodTransfersTable> {
+  $$PeriodTransfersTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+      column: $table.id, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+      column: $table.amount, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<bool> get isPaid => $composableBuilder(
+      column: $table.isPaid, builder: (column) => ColumnOrderings(column));
+
+  $$SettlementPeriodsTableOrderingComposer get periodId {
+    final $$SettlementPeriodsTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.periodId,
+        referencedTable: $db.settlementPeriods,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$SettlementPeriodsTableOrderingComposer(
+              $db: $db,
+              $table: $db.settlementPeriods,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableOrderingComposer get fromMemberId {
+    final $$PeriodMembersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.fromMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableOrderingComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableOrderingComposer get toMemberId {
+    final $$PeriodMembersTableOrderingComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.toMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableOrderingComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodTransfersTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PeriodTransfersTable> {
+  $$PeriodTransfersTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<bool> get isPaid =>
+      $composableBuilder(column: $table.isPaid, builder: (column) => column);
+
+  $$SettlementPeriodsTableAnnotationComposer get periodId {
+    final $$SettlementPeriodsTableAnnotationComposer composer =
+        $composerBuilder(
+            composer: this,
+            getCurrentColumn: (t) => t.periodId,
+            referencedTable: $db.settlementPeriods,
+            getReferencedColumn: (t) => t.id,
+            builder: (joinBuilder,
+                    {$addJoinBuilderToRootComposer,
+                    $removeJoinBuilderFromRootComposer}) =>
+                $$SettlementPeriodsTableAnnotationComposer(
+                  $db: $db,
+                  $table: $db.settlementPeriods,
+                  $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                  joinBuilder: joinBuilder,
+                  $removeJoinBuilderFromRootComposer:
+                      $removeJoinBuilderFromRootComposer,
+                ));
+    return composer;
+  }
+
+  $$PeriodMembersTableAnnotationComposer get fromMemberId {
+    final $$PeriodMembersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.fromMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+
+  $$PeriodMembersTableAnnotationComposer get toMemberId {
+    final $$PeriodMembersTableAnnotationComposer composer = $composerBuilder(
+        composer: this,
+        getCurrentColumn: (t) => t.toMemberId,
+        referencedTable: $db.periodMembers,
+        getReferencedColumn: (t) => t.id,
+        builder: (joinBuilder,
+                {$addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer}) =>
+            $$PeriodMembersTableAnnotationComposer(
+              $db: $db,
+              $table: $db.periodMembers,
+              $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+              joinBuilder: joinBuilder,
+              $removeJoinBuilderFromRootComposer:
+                  $removeJoinBuilderFromRootComposer,
+            ));
+    return composer;
+  }
+}
+
+class $$PeriodTransfersTableTableManager extends RootTableManager<
+    _$AppDatabase,
+    $PeriodTransfersTable,
+    PeriodTransfer,
+    $$PeriodTransfersTableFilterComposer,
+    $$PeriodTransfersTableOrderingComposer,
+    $$PeriodTransfersTableAnnotationComposer,
+    $$PeriodTransfersTableCreateCompanionBuilder,
+    $$PeriodTransfersTableUpdateCompanionBuilder,
+    (PeriodTransfer, $$PeriodTransfersTableReferences),
+    PeriodTransfer,
+    PrefetchHooks Function(
+        {bool periodId, bool fromMemberId, bool toMemberId})> {
+  $$PeriodTransfersTableTableManager(
+      _$AppDatabase db, $PeriodTransfersTable table)
+      : super(TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PeriodTransfersTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PeriodTransfersTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PeriodTransfersTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<int> periodId = const Value.absent(),
+            Value<int> fromMemberId = const Value.absent(),
+            Value<int> toMemberId = const Value.absent(),
+            Value<double> amount = const Value.absent(),
+            Value<bool> isPaid = const Value.absent(),
+          }) =>
+              PeriodTransfersCompanion(
+            id: id,
+            periodId: periodId,
+            fromMemberId: fromMemberId,
+            toMemberId: toMemberId,
+            amount: amount,
+            isPaid: isPaid,
+          ),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required int periodId,
+            required int fromMemberId,
+            required int toMemberId,
+            Value<double> amount = const Value.absent(),
+            Value<bool> isPaid = const Value.absent(),
+          }) =>
+              PeriodTransfersCompanion.insert(
+            id: id,
+            periodId: periodId,
+            fromMemberId: fromMemberId,
+            toMemberId: toMemberId,
+            amount: amount,
+            isPaid: isPaid,
+          ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (
+                    e.readTable(table),
+                    $$PeriodTransfersTableReferences(db, table, e)
+                  ))
+              .toList(),
+          prefetchHooksCallback: (
+              {periodId = false, fromMemberId = false, toMemberId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins: <
+                  T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic>>(state) {
+                if (periodId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.periodId,
+                    referencedTable:
+                        $$PeriodTransfersTableReferences._periodIdTable(db),
+                    referencedColumn:
+                        $$PeriodTransfersTableReferences._periodIdTable(db).id,
+                  ) as T;
+                }
+                if (fromMemberId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.fromMemberId,
+                    referencedTable:
+                        $$PeriodTransfersTableReferences._fromMemberIdTable(db),
+                    referencedColumn: $$PeriodTransfersTableReferences
+                        ._fromMemberIdTable(db)
+                        .id,
+                  ) as T;
+                }
+                if (toMemberId) {
+                  state = state.withJoin(
+                    currentTable: table,
+                    currentColumn: table.toMemberId,
+                    referencedTable:
+                        $$PeriodTransfersTableReferences._toMemberIdTable(db),
+                    referencedColumn: $$PeriodTransfersTableReferences
+                        ._toMemberIdTable(db)
+                        .id,
+                  ) as T;
+                }
+
+                return state;
+              },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ));
+}
+
+typedef $$PeriodTransfersTableProcessedTableManager = ProcessedTableManager<
+    _$AppDatabase,
+    $PeriodTransfersTable,
+    PeriodTransfer,
+    $$PeriodTransfersTableFilterComposer,
+    $$PeriodTransfersTableOrderingComposer,
+    $$PeriodTransfersTableAnnotationComposer,
+    $$PeriodTransfersTableCreateCompanionBuilder,
+    $$PeriodTransfersTableUpdateCompanionBuilder,
+    (PeriodTransfer, $$PeriodTransfersTableReferences),
+    PeriodTransfer,
+    PrefetchHooks Function(
+        {bool periodId, bool fromMemberId, bool toMemberId})>;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -14656,4 +19774,16 @@ class $AppDatabaseManager {
       $$KnownContactsTableTableManager(_db, _db.knownContacts);
   $$SyncQueueTableTableManager get syncQueue =>
       $$SyncQueueTableTableManager(_db, _db.syncQueue);
+  $$SettlementPeriodsTableTableManager get settlementPeriods =>
+      $$SettlementPeriodsTableTableManager(_db, _db.settlementPeriods);
+  $$PeriodMembersTableTableManager get periodMembers =>
+      $$PeriodMembersTableTableManager(_db, _db.periodMembers);
+  $$PeriodExpensesTableTableManager get periodExpenses =>
+      $$PeriodExpensesTableTableManager(_db, _db.periodExpenses);
+  $$PeriodExpenseSplitsTableTableManager get periodExpenseSplits =>
+      $$PeriodExpenseSplitsTableTableManager(_db, _db.periodExpenseSplits);
+  $$PeriodConfirmationsTableTableManager get periodConfirmations =>
+      $$PeriodConfirmationsTableTableManager(_db, _db.periodConfirmations);
+  $$PeriodTransfersTableTableManager get periodTransfers =>
+      $$PeriodTransfersTableTableManager(_db, _db.periodTransfers);
 }

@@ -11,4 +11,6 @@ export interface Env {
   OTP_TTL: string;
   OTP_MAX_ATTEMPTS: string;
   RATE_LIMIT_WINDOW: string;
+  // Neon PostgreSQL (user data + settlement)
+  NEON_DATABASE_URL: string;
 }

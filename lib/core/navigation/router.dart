@@ -27,6 +27,10 @@ import '../../features/house/settlement_screen.dart';
 import '../../features/house/shopping_list_screen.dart';
 import '../../features/house/house_members_screen.dart';
 import '../../features/house/house_sync_screen.dart';
+import '../../features/house/settlement/settlement_periods_screen.dart';
+import '../../features/house/settlement/settlement_period_detail_screen.dart';
+import '../../features/house/settlement/add_period_expense_screen.dart';
+import '../../features/house/settlement/settlement_proposal_screen.dart';
 import '../providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 import '../../features/auth/screens/welcome_screen.dart';
@@ -296,6 +300,36 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (ctx, state) {
           final groupId = state.extra as int? ?? 0;
           return HouseSyncScreen(groupId: groupId);
+        },
+      ),
+
+      // ── Settlement system ──────────────────────────────────────────────────
+      GoRoute(
+        path: '/house/periods',
+        builder: (ctx, state) {
+          final groupId = state.extra as int? ?? 0;
+          return SettlementPeriodsScreen(groupId: groupId);
+        },
+      ),
+      GoRoute(
+        path: '/house/periods/:id',
+        builder: (ctx, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return SettlementPeriodDetailScreen(periodId: id);
+        },
+      ),
+      GoRoute(
+        path: '/house/periods/:id/add-expense',
+        builder: (ctx, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return AddPeriodExpenseScreen(periodId: id);
+        },
+      ),
+      GoRoute(
+        path: '/house/periods/:id/propose',
+        builder: (ctx, state) {
+          final id = int.parse(state.pathParameters['id']!);
+          return SettlementProposalScreen(periodId: id);
         },
       ),
     ],

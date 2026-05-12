@@ -209,6 +209,14 @@ class _GroupDashboard extends ConsumerWidget {
             ),
           ],
         ),
+        const SizedBox(height: 12),
+        // Yangi: Hisob-kitob davrlari
+        _ActionButton(
+          icon: Icons.calculate_outlined,
+          label: 'Hisob-kitob davrlari',
+          color: const Color(0xFF7C3AED),
+          onTap: () => context.push('/house/periods', extra: group.id),
+        ),
         const SizedBox(height: 20),
 
         // Members section

@@ -212,6 +212,75 @@ class KnownContacts extends Table {
   BoolColumn get isTrusted => boolean().withDefault(const Constant(false))();
 }
 
+// ══════════════════════════════════════════════════════════════════════════════
+// HISOB-KITOB TIZIMI (Settlement System)
+// ══════════════════════════════════════════════════════════════════════════════
+
+// ── Hisob-kitob davrlari ──────────────────────────────────────────────────────
+class SettlementPeriods extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get groupId => integer().references(HouseGroups, #id, onDelete: KeyAction.cascade)();
+  TextColumn get title => text().withLength(min: 1, max: 200)();
+  DateTimeColumn get startDate => dateTime()();
+  DateTimeColumn get endDate => dateTime()();
+  // draft | proposed | confirming | disputed | signed | archived
+  TextColumn get status => text().withDefault(const Constant('draft'))();
+  TextColumn get remoteId => text().nullable()(); // Neon period id
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
+// ── Davr a'zolari ──────────────────────────────────────────────────────────────
+class PeriodMembers extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get periodId => integer().references(SettlementPeriods, #id, onDelete: KeyAction.cascade)();
+  TextColumn get name => text().withLength(min: 1, max: 100)();
+  TextColumn get color => text().withDefault(const Constant('#00C896'))();
+  IntColumn get remoteId => integer().nullable()(); // Neon member id
+}
+
+// ── Davr xarajatlari ───────────────────────────────────────────────────────────
+class PeriodExpenses extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get periodId => integer().references(SettlementPeriods, #id, onDelete: KeyAction.cascade)();
+  IntColumn get paidByMemberId => integer().references(PeriodMembers, #id)();
+  TextColumn get title => text().withLength(min: 1, max: 200)();
+  RealColumn get amount => real().withDefault(const Constant(0.0))();
+  TextColumn get currency => text().withDefault(const Constant('UZS'))();
+  DateTimeColumn get date => dateTime().withDefault(currentDateAndTime)();
+  TextColumn get category => text().withDefault(const Constant('other'))();
+  TextColumn get note => text().withDefault(const Constant(''))();
+  BoolColumn get isRecurring => boolean().withDefault(const Constant(false))();
+}
+
+// ── Xarajat bo'limlari ────────────────────────────────────────────────────────
+class PeriodExpenseSplits extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get expenseId => integer().references(PeriodExpenses, #id, onDelete: KeyAction.cascade)();
+  IntColumn get memberId => integer().references(PeriodMembers, #id)();
+  RealColumn get shareAmount => real().withDefault(const Constant(0.0))();
+}
+
+// ── Hisob-kitob tasdiqlash ────────────────────────────────────────────────────
+class PeriodConfirmations extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get periodId => integer().references(SettlementPeriods, #id, onDelete: KeyAction.cascade)();
+  IntColumn get memberId => integer().references(PeriodMembers, #id)();
+  // pending | confirmed | disputed
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  TextColumn get disputeReason => text().nullable()();
+  DateTimeColumn get respondedAt => dateTime().nullable()();
+}
+
+// ── Minimal o'tkazmalar ───────────────────────────────────────────────────────
+class PeriodTransfers extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get periodId => integer().references(SettlementPeriods, #id, onDelete: KeyAction.cascade)();
+  IntColumn get fromMemberId => integer().references(PeriodMembers, #id)();
+  IntColumn get toMemberId => integer().references(PeriodMembers, #id)();
+  RealColumn get amount => real().withDefault(const Constant(0.0))();
+  BoolColumn get isPaid => boolean().withDefault(const Constant(false))();
+}
+
 // ── Sync Queue ────────────────────────────────────────────────────────────────
 class SyncQueue extends Table {
   IntColumn get id => integer().autoIncrement()();

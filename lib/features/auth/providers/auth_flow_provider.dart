@@ -6,6 +6,8 @@ import '../models/user_model.dart';
 import '../services/auth_api_service.dart';
 import '../services/google_auth_service.dart';
 import '../services/token_service.dart';
+import '../../../core/database/database_provider.dart';
+import '../../../core/sync/sync_service.dart';
 
 // ── Service providers ──────────────────────────────────────────────────────────
 final tokenServiceProvider = Provider<TokenService>((ref) => TokenService());
@@ -29,8 +31,9 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
   final AuthApiService _api;
   final GoogleAuthService _google;
   final TokenService _tokens;
+  final Ref _ref;
 
-  AuthFlowNotifier(this._api, this._google, this._tokens)
+  AuthFlowNotifier(this._api, this._google, this._tokens, this._ref)
       : super(const AuthInitial()) {
     _init();
   }
@@ -196,14 +199,59 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
   void goBack() => state = const AuthInitial();
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
+
+  /// Muvaffaqiyatli logindan keyin:
+  /// 1. Agar boshqa foydalanuvchi bo'lsa → eski ma'lumotlarni push → DB tozala
+  /// 2. Yangi tokenlarni saqlash
+  /// 3. Yangi foydalanuvchi ma'lumotlarini pull
   Future<void> _handleSuccess(Map<String, dynamic> res) async {
-    final user = UserModel.fromJson(res['user'] as Map<String, dynamic>);
+    final newUser = UserModel.fromJson(res['user'] as Map<String, dynamic>);
+    final oldUser = await _tokens.getUser();
+
+    final isUserSwitch = oldUser != null && oldUser.id != newUser.id;
+
+    if (isUserSwitch) {
+      dev.log('Hisob almashinmoqda: ${oldUser.email} → ${newUser.email}');
+      final db = _ref.read(databaseProvider);
+
+      // Eski foydalanuvchi ma'lumotlarini serverga yuborish
+      try {
+        final syncSvc = SyncService(db: db, api: _api);
+        await syncSvc.pushAll();
+        dev.log('Eski foydalanuvchi ma\'lumotlari serverga yuborildi');
+      } catch (e) {
+        dev.log('Push (switch before) xatosi (o\'tkazib yuborilyapti): $e');
+      }
+
+      // Local bazani tozalash (PIN va sozlamalar saqlanib qoladi)
+      try {
+        await db.clearUserData();
+        dev.log('Local baza tozalandi');
+      } catch (e) {
+        dev.log('clearUserData xatosi: $e');
+      }
+    }
+
+    // Yangi tokenlarni va profilni saqlash
     await _tokens.saveTokens(
       access: res['accessToken'] as String,
       refresh: res['refreshToken'] as String,
     );
-    await _tokens.saveUser(user);
-    state = AuthSuccess(user: user);
+    await _tokens.saveUser(newUser);
+
+    // Yangi foydalanuvchi ma'lumotlarini serverdan yuklash
+    if (isUserSwitch) {
+      try {
+        final db = _ref.read(databaseProvider);
+        final syncSvc = SyncService(db: db, api: _api);
+        await syncSvc.pullAll();
+        dev.log('Yangi foydalanuvchi ma\'lumotlari yuklandi');
+      } catch (e) {
+        dev.log('Pull (switch after) xatosi (o\'tkazib yuborilyapti): $e');
+      }
+    }
+
+    state = AuthSuccess(user: newUser);
   }
 
   void _handleOtpError(DioException e, AuthFlowState prev) {
@@ -233,5 +281,6 @@ final authFlowProvider =
     ref.read(authApiServiceProvider),
     ref.read(googleAuthServiceProvider),
     ref.read(tokenServiceProvider),
+    ref,
   );
 });

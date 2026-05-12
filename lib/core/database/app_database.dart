@@ -16,6 +16,7 @@ import 'daos/currencies_dao.dart';
 import 'daos/settings_dao.dart';
 import 'daos/islamic_contracts_dao.dart';
 import 'daos/house_dao.dart';
+import 'daos/settlement_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -40,6 +41,13 @@ part 'app_database.g.dart';
     DebtEvents,
     KnownContacts,
     SyncQueue,
+    // Settlement system
+    SettlementPeriods,
+    PeriodMembers,
+    PeriodExpenses,
+    PeriodExpenseSplits,
+    PeriodConfirmations,
+    PeriodTransfers,
   ],
   daos: [
     AccountsDao,
@@ -51,13 +59,14 @@ part 'app_database.g.dart';
     SettingsDao,
     IslamicContractsDao,
     HouseDao,
+    SettlementDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -89,8 +98,47 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(knownContacts);
             await m.createTable(syncQueue);
           }
+          if (from < 4) {
+            // Settlement system tables
+            await m.createTable(settlementPeriods);
+            await m.createTable(periodMembers);
+            await m.createTable(periodExpenses);
+            await m.createTable(periodExpenseSplits);
+            await m.createTable(periodConfirmations);
+            await m.createTable(periodTransfers);
+          }
         },
       );
+
+  /// Hisob almashtirishda foydalanuvchi ma'lumotlarini tozalaydi.
+  /// PIN, sozlamalar va valyuta kurslari saqlanib qoladi.
+  Future<void> clearUserData() async {
+    await transaction(() async {
+      await delete(transactions).go();
+      await delete(accounts).go();
+      await (delete(categories)..where((t) => t.isDefault.equals(false))).go();
+      await delete(budgets).go();
+      await delete(debtPayments).go();
+      await delete(debts).go();
+      await delete(islamicContracts).go();
+      await delete(debtSignatures).go();
+      await delete(debtEvents).go();
+      await delete(knownContacts).go();
+      await delete(houseExpenseSplits).go();
+      await delete(houseExpenses).go();
+      await delete(houseSettlements).go();
+      await delete(houseMembers).go();
+      await delete(houseGroups).go();
+      await delete(shoppingItems).go();
+      await delete(periodExpenseSplits).go();
+      await delete(periodExpenses).go();
+      await delete(periodConfirmations).go();
+      await delete(periodTransfers).go();
+      await delete(periodMembers).go();
+      await delete(settlementPeriods).go();
+      await delete(syncQueue).go();
+    });
+  }
 
   Future<void> _seedDefaultData() async {
     // Seed currencies

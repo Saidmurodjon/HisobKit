@@ -1,7 +1,7 @@
 name: hisobkit
 description: HisobKit — Personal Finance Tracker. 100% offline, encrypted, privacy-first.
 publish_to: 'none'
-version: 1.4.4+17
+version: 1.5.0+18
 
 environment:
   sdk: '>=3.0.0 <4.0.0'

@@ -17,7 +17,8 @@ export async function verifyGoogleToken(
     // aud must match our web client ID (or azp for Android clients)
     const audMatch = payload['aud'] === clientId || payload['azp'] === clientId;
     if (!audMatch) {
-      console.error('[Google] aud mismatch. aud:', payload['aud'], 'azp:', payload['azp'], 'expected:', clientId);
+      // Log both values so we can diagnose mismatches
+      console.error('[Google] aud mismatch. token_aud:', payload['aud'], 'token_azp:', payload['azp'], 'expected_clientId:', clientId);
       return null;
     }
     if (Number(payload['exp']) < Math.floor(Date.now() / 1000)) {

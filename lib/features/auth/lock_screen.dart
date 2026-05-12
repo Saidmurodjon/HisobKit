@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,9 +37,10 @@ class _LockScreenState extends ConsumerState<LockScreen>
     );
     _checkBiometrics();
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      // If no PIN is set, skip lock screen automatically
+      print('[LOCK] checkHasAuth start');
       final hasAuth = await ref.read(authProvider.notifier).checkHasAuth();
-      if (!hasAuth) return; // router handles redirect
+      print('[LOCK] checkHasAuth done: $hasAuth');
+      if (!hasAuth) return;
       _tryBiometrics();
     });
   }
@@ -64,12 +66,12 @@ class _LockScreenState extends ConsumerState<LockScreen>
   }
 
   void _addDigit(String digit) {
-    if (_pin.length >= 6 || _isLoading) return;
+    if (_pin.length >= 4 || _isLoading) return;
     setState(() {
       _pin.add(digit);
       _isError = false;
     });
-    if (_pin.length >= 4) _tryUnlock();
+    if (_pin.length == 4) _tryUnlock();
   }
 
   void _removeDigit() {
@@ -80,9 +82,13 @@ class _LockScreenState extends ConsumerState<LockScreen>
   Future<void> _tryUnlock() async {
     final pinStr = _pin.join();
     if (mounted) setState(() => _isLoading = true);
+    print('[LOCK] _tryUnlock pin=${pinStr.length} digits');
     try {
-      final success =
-          await ref.read(authProvider.notifier).authenticateWithPin(pinStr);
+      final success = await ref
+          .read(authProvider.notifier)
+          .authenticateWithPin(pinStr)
+          .timeout(const Duration(seconds: 5), onTimeout: () => false);
+      print('[LOCK] _tryUnlock result=$success');
       if (!mounted) return;
       if (success) {
         context.go('/');
@@ -215,7 +221,7 @@ class _PinDots extends StatelessWidget {
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(6, (i) {
+      children: List.generate(4, (i) {
         final filled = i < length;
         return AnimatedContainer(
           duration: const Duration(milliseconds: 150),

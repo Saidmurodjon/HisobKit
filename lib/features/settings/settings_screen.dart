@@ -22,6 +22,7 @@ import '../../core/security/pin_service.dart';
 import '../../core/security/encryption_service.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../core/sync/sync_provider.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -139,6 +140,11 @@ class SettingsScreen extends ConsumerWidget {
                 onTap: () => context.push('/export'),
               ),
             ]),
+            const SizedBox(height: 20),
+
+            // ── Sync ─────────────────────────────────────────────────────────
+            _GroupLabel('Sinxronlash'),
+            _SyncSection(),
             const SizedBox(height: 20),
 
             // ── About ─────────────────────────────────────────────────────
@@ -439,7 +445,8 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 20),
               FilledButton(
                 onPressed: () async {
-                  final ok = await PinService.verifyPin(currentCtrl.text);
+                  final pinSvc = ref.read(pinServiceProvider);
+                  final ok = await pinSvc.verifyPin(currentCtrl.text);
                   if (!ok) {
                     setState(() => error = l10n.wrongPin);
                     return;
@@ -452,7 +459,7 @@ class SettingsScreen extends ConsumerWidget {
                     setState(() => error = l10n.pinMismatch);
                     return;
                   }
-                  await PinService.setPin(newCtrl.text);
+                  await pinSvc.setPin(newCtrl.text);
                   if (ctx.mounted) {
                     Navigator.pop(ctx);
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -601,7 +608,7 @@ class SettingsScreen extends ConsumerWidget {
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: AppTheme.danger),
             onPressed: () async {
-              final verified = await PinService.verifyPin(pinCtrl.text);
+              final verified = await ref.read(pinServiceProvider).verifyPin(pinCtrl.text);
               if (verified && ctx.mounted) {
                 Navigator.pop(ctx, true);
               } else if (ctx.mounted) {
@@ -618,7 +625,7 @@ class SettingsScreen extends ConsumerWidget {
 
     if (ok == true && context.mounted) {
       await EncryptionService.deleteKey();
-      await PinService.clearPin();
+      await ref.read(pinServiceProvider).clearPin();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -1524,6 +1531,152 @@ class _UpdateDialogState extends State<_UpdateDialog> {
         ],
       ),
     );
+  }
+}
+
+// ── Sync Section ─────────────────────────────────────────────────────────────
+
+class _SyncSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final syncState = ref.watch(syncProvider);
+    final authState = ref.watch(authFlowProvider);
+    final isLoggedIn = authState is AuthFlowSuccess;
+
+    // Oxirgi sinxronlash vaqti
+    String lastSyncText = 'Hech qachon sinxronlanmagan';
+    if (syncState.lastSyncAt != null) {
+      final dt = syncState.lastSyncAt!.toLocal();
+      lastSyncText =
+          '${dt.year}.${dt.month.toString().padLeft(2, '0')}.${dt.day.toString().padLeft(2, '0')} '
+          '${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    }
+
+    return _GroupCard(children: [
+      // Push tile
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        leading: _iconBox(Icons.cloud_upload_outlined),
+        title: Text(
+          "Serverga yuklash",
+          style: GoogleFonts.inter(fontSize: 15),
+        ),
+        subtitle: Text(
+          isLoggedIn
+              ? syncState.status == SyncStatus.pushing
+                  ? 'Yuklanmoqda...'
+                  : 'Oxirgi: $lastSyncText'
+              : 'Kirish talab etiladi',
+          style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+        ),
+        trailing: syncState.status == SyncStatus.pushing
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                isLoggedIn ? Icons.chevron_right : Icons.lock_outline,
+                size: 18,
+                color: Colors.grey,
+              ),
+        onTap: isLoggedIn && !syncState.isBusy
+            ? () => ref.read(syncProvider.notifier).push()
+            : null,
+      ),
+      SettingsScreen._divider(),
+
+      // Pull tile
+      ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        leading: _iconBox(Icons.cloud_download_outlined),
+        title: Text(
+          "Serverdan tiklash",
+          style: GoogleFonts.inter(fontSize: 15),
+        ),
+        subtitle: Text(
+          isLoggedIn
+              ? syncState.status == SyncStatus.pulling
+                  ? 'Tiklanmoqda...'
+                  : 'Bulutdagi ma\'lumotlarni local bazaga birlashtiradi'
+              : 'Kirish talab etiladi',
+          style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+        ),
+        trailing: syncState.status == SyncStatus.pulling
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(
+                isLoggedIn ? Icons.chevron_right : Icons.lock_outline,
+                size: 18,
+                color: Colors.grey,
+              ),
+        onTap: isLoggedIn && !syncState.isBusy
+            ? () async {
+                final ok = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Serverdan tiklash'),
+                    content: const Text(
+                      'Serverdan yuklangan ma\'lumotlar local bazaga qo\'shiladi (ustiga yoziladi). Davom etasizmi?',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx, false),
+                        child: const Text('Bekor'),
+                      ),
+                      FilledButton(
+                        onPressed: () => Navigator.pop(ctx, true),
+                        child: const Text('Tiklash'),
+                      ),
+                    ],
+                  ),
+                );
+                if (ok == true && context.mounted) {
+                  ref.read(syncProvider.notifier).pull();
+                }
+              }
+            : null,
+      ),
+
+      // Status / Error row
+      if (syncState.status == SyncStatus.success ||
+          syncState.status == SyncStatus.error) ...[
+        SettingsScreen._divider(),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Row(
+            children: [
+              Icon(
+                syncState.status == SyncStatus.success
+                    ? Icons.check_circle_outline
+                    : Icons.error_outline,
+                size: 18,
+                color: syncState.status == SyncStatus.success
+                    ? Colors.green
+                    : Colors.red,
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  syncState.status == SyncStatus.success
+                      ? 'Sinxronlash muvaffaqiyatli bajarildi'
+                      : syncState.errorMessage ?? 'Xato yuz berdi',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: syncState.status == SyncStatus.success
+                        ? Colors.green
+                        : Colors.red,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ]);
   }
 }
 

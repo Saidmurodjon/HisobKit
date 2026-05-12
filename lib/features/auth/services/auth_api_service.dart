@@ -133,6 +133,33 @@ class AuthApiService {
     return res.data as Map<String, dynamic>;
   }
 
+  // ── Sync ──────────────────────────────────────────────────────────────────
+
+  /// Ma'lumotlar guruhini serverga yuboradi.
+  /// [dataType]: 'transactions' | 'debts' | 'house'
+  /// [payload]: JSON string
+  Future<Map<String, dynamic>> syncPush(
+      String dataType, String payload) async {
+    final res = await _dio.post('/sync/push', data: {
+      'dataType': dataType,
+      'payload': payload,
+      'version': 1,
+    });
+    return res.data as Map<String, dynamic>;
+  }
+
+  /// Serverdan barcha ma'lumotlarni oladi.
+  Future<Map<String, dynamic>> syncPull() async {
+    final res = await _dio.get('/sync/pull');
+    return res.data as Map<String, dynamic>;
+  }
+
+  /// Har bir data_type uchun oxirgi sinxronlash vaqtini oladi.
+  Future<Map<String, dynamic>> syncStatus() async {
+    final res = await _dio.get('/sync/status');
+    return res.data as Map<String, dynamic>;
+  }
+
   Future<Map<String, dynamic>> _post(
       String path, Map<String, dynamic> data) async {
     final res = await _dio.post(path, data: data);

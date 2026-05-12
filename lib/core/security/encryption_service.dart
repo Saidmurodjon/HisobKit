@@ -1,59 +1,42 @@
+import 'dart:io';
 import 'dart:math';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:path_provider/path_provider.dart';
 
+/// DB encryption key is stored in a plain file inside the app's private
+/// documents directory.  No Keystore / flutter_secure_storage involved —
+/// eliminates hang issues on Honor/EMUI devices entirely.
+///
+/// Security: the file lives in /data/data/<package>/app_flutter/ which is
+/// sandboxed (inaccessible to other apps on non-rooted devices).
 class EncryptionService {
-  static const _keyName = 'hisobkit_db_key';
-  static const _timeout = Duration(seconds: 5);
+  static const _keyFileName = '.hk_db_key';
 
-  // Standard Android Keystore — reliable on all devices including Honor/EMUI.
-  static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: false),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-  );
-
-  // Legacy storage used in versions ≤ 1.4.3 — only for one-time migration.
-  static const _legacyStorage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-  );
-
-  /// Returns the database encryption key, generating one on first launch.
-  /// Migrates from legacy EncryptedSharedPreferences storage if needed.
   static Future<String> getDatabaseKey() async {
-    // 1. Try new storage (fast path for existing users after v1.4.4+)
     try {
-      final key =
-          await _storage.read(key: _keyName).timeout(_timeout);
-      if (key != null && key.isNotEmpty) return key;
-    } catch (_) {}
-
-    // 2. Try legacy storage and migrate to new storage
-    try {
-      final legacyKey = await _legacyStorage
-          .read(key: _keyName)
-          .timeout(const Duration(seconds: 3));
-      if (legacyKey != null && legacyKey.isNotEmpty) {
-        // Migrate: write to new storage, delete from legacy
-        try {
-          await _storage
-              .write(key: _keyName, value: legacyKey)
-              .timeout(_timeout);
-          await _legacyStorage
-              .delete(key: _keyName)
-              .timeout(const Duration(seconds: 3));
-        } catch (_) {}
-        return legacyKey;
+      final dir = await getApplicationDocumentsDirectory();
+      final keyFile = File('${dir.path}/$_keyFileName');
+      if (await keyFile.exists()) {
+        final key = await keyFile.readAsString();
+        if (key.length >= 16) return key;
       }
     } catch (_) {}
 
-    // 3. First launch (or migration impossible) — generate new key
+    // Generate and persist a new key
     final newKey = _generateKey(32);
     try {
-      await _storage
-          .write(key: _keyName, value: newKey)
-          .timeout(_timeout);
+      final dir = await getApplicationDocumentsDirectory();
+      final keyFile = File('${dir.path}/$_keyFileName');
+      await keyFile.writeAsString(newKey);
     } catch (_) {}
     return newKey;
+  }
+
+  static Future<void> deleteKey() async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final keyFile = File('${dir.path}/$_keyFileName');
+      if (await keyFile.exists()) await keyFile.delete();
+    } catch (_) {}
   }
 
   static String _generateKey(int length) {
@@ -62,14 +45,5 @@ class EncryptionService {
     final rng = Random.secure();
     return List.generate(length, (_) => chars[rng.nextInt(chars.length)])
         .join();
-  }
-
-  static Future<void> deleteKey() async {
-    try {
-      await _storage.delete(key: _keyName).timeout(_timeout);
-      await _legacyStorage
-          .delete(key: _keyName)
-          .timeout(const Duration(seconds: 3));
-    } catch (_) {}
   }
 }

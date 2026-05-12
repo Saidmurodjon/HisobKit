@@ -122,7 +122,7 @@ auth.post('/google/login', async (c) => {
   if (!idToken) return c.json({ error: 'idToken taqdim etilmagan' }, 400);
 
   const gUser = await verifyGoogleToken(idToken, c.env.GOOGLE_CLIENT_ID);
-  if (!gUser) return c.json({ error: 'Google token noto\'g\'ri' }, 400);
+  if (!gUser) return c.json({ error: 'Google token noto\'g\'ri. clientId sozlamasini tekshiring.' }, 400);
 
   // Find or create user
   let user = await c.env.DB.prepare(
@@ -133,15 +133,30 @@ auth.post('/google/login', async (c) => {
   const now = Math.floor(Date.now() / 1000);
 
   if (!user) {
-    const userId = uuid();
-    await c.env.DB.prepare(
-      `INSERT INTO users (id, email, google_id, display_name, avatar_url, last_seen_at)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-    ).bind(userId, gUser.email, gUser.googleId, gUser.name, gUser.avatarUrl, now).run();
-    await c.env.DB.prepare(
-      `INSERT INTO user_auth_providers (id, user_id, provider, provider_id) VALUES (?, ?, 'google', ?)`,
-    ).bind(uuid(), userId, gUser.googleId).run();
-    user = { id: userId, email: gUser.email, display_name: gUser.name, avatar_url: gUser.avatarUrl, created_at: now };
+    // Also check by email (user may have signed in with email before)
+    const byEmail = await c.env.DB.prepare(
+      'SELECT * FROM users WHERE email = ?',
+    ).bind(gUser.email).first<{ id: string; email: string; display_name: string | null; avatar_url: string | null; created_at: number }>();
+
+    if (byEmail) {
+      // Link Google to existing email account
+      user = byEmail;
+      await c.env.DB.prepare('UPDATE users SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), last_seen_at = ? WHERE id = ?')
+        .bind(gUser.googleId, gUser.avatarUrl, now, user.id).run();
+      await c.env.DB.prepare(
+        `INSERT OR IGNORE INTO user_auth_providers (id, user_id, provider, provider_id) VALUES (?, ?, 'google', ?)`,
+      ).bind(uuid(), user.id, gUser.googleId).run();
+    } else {
+      const userId = uuid();
+      await c.env.DB.prepare(
+        `INSERT INTO users (id, email, google_id, display_name, avatar_url, last_seen_at)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+      ).bind(userId, gUser.email, gUser.googleId, gUser.name, gUser.avatarUrl, now).run();
+      await c.env.DB.prepare(
+        `INSERT INTO user_auth_providers (id, user_id, provider, provider_id) VALUES (?, ?, 'google', ?)`,
+      ).bind(uuid(), userId, gUser.googleId).run();
+      user = { id: userId, email: gUser.email, display_name: gUser.name, avatar_url: gUser.avatarUrl, created_at: now };
+    }
   } else {
     await c.env.DB.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').bind(now, user.id).run();
   }

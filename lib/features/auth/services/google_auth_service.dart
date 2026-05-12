@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -23,10 +24,20 @@ class GoogleAuthService {
   /// Returns null if the user cancelled the sign-in dialog.
   Future<String?> signIn() async {
     try {
-      final account = await _googleSignIn.signIn();
-      if (account == null) return null; // user cancelled
+      // 30 sekund timeout — SHA1 mismatch yoki boshqa xatolikda hang bo'lmaslik uchun
+      final account = await _googleSignIn.signIn().timeout(
+        const Duration(seconds: 30),
+        onTimeout: () => null,
+      );
+      if (account == null) return null; // user cancelled or timeout
 
-      final auth = await account.authentication;
+      final auth = await account.authentication.timeout(
+        const Duration(seconds: 15),
+        onTimeout: () => throw GoogleAuthException(
+          'Google token olishda vaqt tugadi. Qayta urinib ko\'ring.',
+          code: 'timeout',
+        ),
+      );
       final token = auth.idToken;
       if (token == null) {
         throw GoogleAuthException(

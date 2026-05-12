@@ -1,61 +1,59 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:crypto/crypto.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:path_provider/path_provider.dart';
+
+/// PIN hash is stored in a plain file inside the app's private directory.
+/// No Keystore, no flutter_secure_storage, no SQLite — zero hang risk.
+final pinServiceProvider = Provider<PinService>((_) => PinService());
 
 class PinService {
-  static const _pinKey = 'hisobkit_pin_hash';
+  static const _pinFileName = '.hk_pin_hash';
 
-  // encryptedSharedPreferences: false → standard Android Keystore (more
-  // reliable on Honor / EMUI devices where EncryptedSharedPreferences hangs).
-  static const _storage = FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: false),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-  );
-
-  // Timeout for every storage operation — prevents infinite hangs on
-  // devices with broken KeyStore implementations.
-  static const _timeout = Duration(seconds: 5);
-
-  static String _hashPin(String pin) {
+  static String hashPin(String pin) {
     final bytes = utf8.encode(pin + 'hisobkit_salt_2024');
-    final digest = sha256.convert(bytes);
-    return digest.toString();
+    return sha256.convert(bytes).toString();
   }
 
-  static Future<void> setPin(String pin) async {
-    try {
-      await _storage
-          .write(key: _pinKey, value: _hashPin(pin))
-          .timeout(_timeout);
-    } catch (_) {
-      // If write fails, silently ignore — user will be asked to set PIN again
-    }
+  static Future<File> _pinFile() async {
+    final dir = await getApplicationDocumentsDirectory();
+    return File('${dir.path}/$_pinFileName');
   }
 
-  static Future<bool> verifyPin(String pin) async {
+  Future<void> setPin(String pin) async {
     try {
-      final stored =
-          await _storage.read(key: _pinKey).timeout(_timeout);
-      if (stored == null || stored.isEmpty) return false;
-      return stored == _hashPin(pin);
-    } catch (_) {
-      return false;
-    }
+      final file = await _pinFile();
+      await file.writeAsString(hashPin(pin));
+    } catch (_) {}
   }
 
-  static Future<bool> hasPin() async {
+  Future<bool> verifyPin(String pin) async {
     try {
-      final stored =
-          await _storage.read(key: _pinKey).timeout(_timeout);
-      return stored != null && stored.isNotEmpty;
+      final file = await _pinFile();
+      if (!await file.exists()) return false;
+      final stored = await file.readAsString();
+      return stored.trim() == hashPin(pin);
     } catch (_) {
       return false;
     }
   }
 
-  static Future<void> clearPin() async {
+  Future<bool> hasPin() async {
     try {
-      await _storage.delete(key: _pinKey).timeout(_timeout);
+      final file = await _pinFile();
+      if (!await file.exists()) return false;
+      final stored = await file.readAsString();
+      return stored.trim().isNotEmpty;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  Future<void> clearPin() async {
+    try {
+      final file = await _pinFile();
+      if (await file.exists()) await file.delete();
     } catch (_) {}
   }
 }

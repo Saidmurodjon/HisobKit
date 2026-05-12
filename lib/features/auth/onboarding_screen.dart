@@ -72,7 +72,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (mounted) setState(() => _biometricsAvailable = available);
   }
 
-  void _goNext() {
+  Future<void> _goNext() async {
     if (_page == 1) {
       // Skip cloud auth — mark as skipped and advance
       ref.read(cloudAuthSkippedProvider.notifier).state = true;
@@ -87,7 +87,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      _finish();
+      await _finish();
     }
   }
 
@@ -99,8 +99,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Future<void> _finish() async {
-    if (_pinController.text.length < 4) {
-      setState(() => _pinError = 'PIN kamida 4 ta raqam bo\'lsin');
+    if (_pinController.text.length != 4) {
+      setState(() => _pinError = 'PIN aynan 4 ta raqam bo\'lsin');
       return;
     }
     if (_pinController.text != _confirmPinController.text) {
@@ -112,17 +112,33 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       _isFinishing = true;
     });
 
-    final settingsNotifier = ref.read(appSettingsProvider.notifier);
-    final authNotifier = ref.read(authProvider.notifier);
+    try {
+      final settingsNotifier = ref.read(appSettingsProvider.notifier);
+      final authNotifier = ref.read(authProvider.notifier);
 
-    await PinService.setPin(_pinController.text);
-    await settingsNotifier.setLanguage(_selectedLanguage);
-    await settingsNotifier.setBaseCurrency(_selectedCurrency);
-    await settingsNotifier.setBiometrics(_biometricsEnabled);
+      print('[FINISH] 1 setPin start');
+      await ref.read(pinServiceProvider).setPin(_pinController.text);
+      print('[FINISH] 2 setPin done');
 
-    authNotifier.unlock();
-    ref.read(onboardingPageProvider.notifier).state = 0;
-    await settingsNotifier.completeOnboarding();
+      await settingsNotifier.setLanguage(_selectedLanguage);
+      print('[FINISH] 3 setLanguage done');
+
+      await settingsNotifier.setBaseCurrency(_selectedCurrency);
+      print('[FINISH] 4 setCurrency done');
+
+      await settingsNotifier.setBiometrics(_biometricsEnabled);
+      print('[FINISH] 5 setBiometrics done');
+
+      authNotifier.unlock();
+      print('[FINISH] 6 unlock done');
+
+      ref.read(onboardingPageProvider.notifier).state = 0;
+      await settingsNotifier.completeOnboarding();
+      print('[FINISH] 7 completeOnboarding done');
+    } catch (e) {
+      print('[FINISH] ERROR: $e');
+      if (mounted) setState(() => _isFinishing = false);
+    }
   }
 
   String get _nextLabel {
@@ -674,8 +690,8 @@ class _SecurityPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 60, 24, 200),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(24, 60, 24, 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -917,7 +933,7 @@ class _SetupPage extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            'Ilovani himoya qilish uchun 4–8 raqamli parol.',
+            'Ilovani himoya qilish uchun 4 ta raqamli parol.',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color:
                       Theme.of(context).colorScheme.onSurfaceVariant,
@@ -928,9 +944,9 @@ class _SetupPage extends StatelessWidget {
             controller: pinController,
             keyboardType: TextInputType.number,
             obscureText: true,
-            maxLength: 8,
+            maxLength: 4,
             decoration: const InputDecoration(
-              labelText: 'Parol (4–8 raqam)',
+              labelText: '4 ta raqamli parol',
               prefixIcon: Icon(Icons.lock_outline),
             ),
           ),
@@ -939,7 +955,7 @@ class _SetupPage extends StatelessWidget {
             controller: confirmPinController,
             keyboardType: TextInputType.number,
             obscureText: true,
-            maxLength: 8,
+            maxLength: 4,
             decoration: const InputDecoration(
               labelText: 'Parolni tasdiqlang',
               prefixIcon: Icon(Icons.lock_outline),

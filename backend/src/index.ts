@@ -3,6 +3,7 @@ import { cors } from 'hono/cors';
 import { logger } from 'hono/logger';
 import { secureHeaders } from 'hono/secure-headers';
 import authRoutes from './routes/auth.ts';
+import syncRoutes from './routes/sync.ts';
 import type { Env } from './types/env.d.ts';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -22,6 +23,7 @@ app.get('/', c => c.json({
 }));
 
 app.route('/auth', authRoutes);
+app.route('/sync', syncRoutes);
 
 app.notFound(c => c.json({ error: 'Topilmadi' }, 404));
 app.onError((err, c) => {

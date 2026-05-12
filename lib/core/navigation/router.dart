@@ -56,25 +56,47 @@ class _RouterNotifier extends ChangeNotifier {
     final authState = _ref.read(authProvider);
 
     final settings = settingsAsync.value;
+    final loc = state.matchedLocation;
+    print('[ROUTER] loc=$loc onboarding=${settings?.onboardingComplete} auth=$authState settingsNull=${settings == null}');
+
     // Settings still loading → show splash (not the white DashboardScreen)
     if (settings == null) {
-      return state.matchedLocation == '/splash' ? null : '/splash';
+      return loc == '/splash' ? null : '/splash';
     }
 
     final onboardingDone = settings.onboardingComplete;
-    final isOnboarding = state.matchedLocation == '/onboarding';
+    final isLocked = authState == AuthState.locked;
+    final isOnboarding = loc == '/onboarding';
 
+    // ── Splash ────────────────────────────────────────────────────────────────
+    // Settings are loaded — splash is just a transient loading screen.
+    // Immediately redirect to the correct destination.
+    if (loc == '/splash') {
+      if (!onboardingDone) return '/onboarding';
+      print('[ROUTER] splash → ${isLocked ? '/lock' : '/'}');
+      return isLocked ? '/lock' : '/';
+    }
+
+    // ── Onboarding ───────────────────────────────────────────────────────────
     if (!onboardingDone) {
+      // Allow OTP and profile screens to show during onboarding email auth
+      if (loc == '/auth/otp' || loc == '/auth/profile') return null;
       return isOnboarding ? null : '/onboarding';
     }
 
     // Onboarding complete — if still on onboarding page, go to main app
-    if (isOnboarding) return '/';
+    if (isOnboarding) {
+      print('[ROUTER] onboarding done → redirect ${isLocked ? '/lock' : '/'}');
+      return isLocked ? '/lock' : '/';
+    }
 
-    final isLocked = authState == AuthState.locked;
-    final isLockScreen = state.matchedLocation == '/lock';
+    // ── Lock screen ──────────────────────────────────────────────────────────
+    final isLockScreen = loc == '/lock';
 
-    if (isLocked && !isLockScreen) return '/lock';
+    if (isLocked && !isLockScreen) {
+      print('[ROUTER] locked → /lock');
+      return '/lock';
+    }
     if (!isLocked && isLockScreen) return '/';
 
     return null;

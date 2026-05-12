@@ -46,13 +46,13 @@ class AuthNotifier extends Notifier<AuthState> {
   }
 
   Future<bool> authenticateWithPin(String pin) async {
-    final success = await PinService.verifyPin(pin);
+    final success = await ref.read(pinServiceProvider).verifyPin(pin);
     if (success) unlock();
     return success;
   }
 
   Future<bool> checkHasAuth() async {
-    final hasPin = await PinService.hasPin();
+    final hasPin = await ref.read(pinServiceProvider).hasPin();
     if (!hasPin) {
       state = AuthState.noAuth;
       return false;

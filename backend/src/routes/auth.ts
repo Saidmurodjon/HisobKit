@@ -6,6 +6,32 @@ import { createTokenPair, verifyToken } from '../services/jwt.service.ts';
 import { sendOtpEmail } from '../services/email.service.ts';
 import { checkRateLimit } from '../middleware/rate-limit.ts';
 import { authMiddleware } from '../middleware/auth.middleware.ts';
+import { getSql } from '../db/neon.ts';
+
+/** Login muvaffaqiyatli bo'lgandan keyin Neon user_profiles ga upsert qilish */
+async function upsertProfile(
+  neonUrl: string,
+  userId: string,
+  displayName: string | null,
+  email: string | null,
+  avatarUrl: string | null,
+): Promise<void> {
+  try {
+    const sql = getSql(neonUrl);
+    await sql`
+      INSERT INTO user_profiles (user_id, display_name, email, avatar_url, last_seen)
+      VALUES (${userId}, ${displayName ?? ''}, ${email ?? null}, ${avatarUrl ?? null}, NOW())
+      ON CONFLICT (user_id) DO UPDATE SET
+        display_name = COALESCE(EXCLUDED.display_name, user_profiles.display_name),
+        email        = COALESCE(EXCLUDED.email, user_profiles.email),
+        avatar_url   = COALESCE(EXCLUDED.avatar_url, user_profiles.avatar_url),
+        last_seen    = NOW()
+    `;
+  } catch (e) {
+    // Non-critical: don't fail login if Neon is down
+    console.error('upsertProfile error:', e);
+  }
+}
 
 const auth = new Hono<{ Bindings: Env; Variables: { user: Record<string, unknown> } }>();
 
@@ -171,6 +197,9 @@ auth.post('/google/login', async (c) => {
     parseInt(c.env.ACCESS_TOKEN_TTL), parseInt(c.env.REFRESH_TOKEN_TTL),
   );
 
+  // Neon profile upsert (fire-and-forget)
+  void upsertProfile(c.env.NEON_DATABASE_URL, user.id, user.display_name ?? gUser.name, user.email, user.avatar_url ?? gUser.avatarUrl);
+
   return c.json({
     accessToken,
     refreshToken,
@@ -276,6 +305,9 @@ auth.post('/email/verify-otp', async (c) => {
     user.id, user.email, deviceId, c.env.AUTH_KV, c.env.JWT_SECRET,
     parseInt(c.env.ACCESS_TOKEN_TTL), parseInt(c.env.REFRESH_TOKEN_TTL),
   );
+
+  // Neon profile upsert
+  void upsertProfile(c.env.NEON_DATABASE_URL, user.id, user.display_name, user.email, user.avatar_url);
 
   return c.json({
     accessToken,
@@ -403,6 +435,9 @@ auth.post('/verify-otp', async (c) => {
     user.id, user.email, deviceId, c.env.AUTH_KV, c.env.JWT_SECRET,
     parseInt(c.env.ACCESS_TOKEN_TTL), parseInt(c.env.REFRESH_TOKEN_TTL),
   );
+
+  // Neon profile upsert
+  void upsertProfile(c.env.NEON_DATABASE_URL, user.id, user.display_name, user.email, user.avatar_url);
 
   return c.json({
     accessToken,

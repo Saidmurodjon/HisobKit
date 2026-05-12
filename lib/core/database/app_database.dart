@@ -17,6 +17,7 @@ import 'daos/settings_dao.dart';
 import 'daos/islamic_contracts_dao.dart';
 import 'daos/house_dao.dart';
 import 'daos/settlement_dao.dart';
+import 'daos/notifications_dao.dart';
 
 part 'app_database.g.dart';
 
@@ -48,6 +49,8 @@ part 'app_database.g.dart';
     PeriodExpenseSplits,
     PeriodConfirmations,
     PeriodTransfers,
+    // Notifications
+    AppNotifications,
   ],
   daos: [
     AccountsDao,
@@ -60,13 +63,14 @@ part 'app_database.g.dart';
     IslamicContractsDao,
     HouseDao,
     SettlementDao,
+    NotificationsDao,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(QueryExecutor executor) : super(executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -107,6 +111,10 @@ class AppDatabase extends _$AppDatabase {
             await m.createTable(periodConfirmations);
             await m.createTable(periodTransfers);
           }
+          if (from < 5) {
+            // Notifications local cache
+            await m.createTable(appNotifications);
+          }
         },
       );
 
@@ -137,6 +145,7 @@ class AppDatabase extends _$AppDatabase {
       await delete(periodMembers).go();
       await delete(settlementPeriods).go();
       await delete(syncQueue).go();
+      await delete(appNotifications).go();
     });
   }
 

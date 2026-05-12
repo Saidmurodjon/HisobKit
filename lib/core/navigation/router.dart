@@ -36,7 +36,9 @@ import '../providers/settings_provider.dart';
 import '../../features/auth/screens/welcome_screen.dart';
 import '../../features/auth/screens/otp_verify_screen.dart';
 import '../../features/auth/screens/profile_setup_screen.dart';
+import '../../features/auth/screens/telegram_otp_screen.dart';
 import '../../features/auth/splash_screen.dart';
+import '../../features/notifications/notifications_screen.dart';
 
 // ── Router Notifier ───────────────────────────────────────────────────────────
 // ChangeNotifier that listens to auth + settings and notifies the GoRouter
@@ -153,6 +155,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/auth/profile',
         builder: (ctx, _) => const ProfileSetupScreen(),
       ),
+      GoRoute(
+        path: '/auth/telegram',
+        builder: (ctx, _) => const TelegramOtpScreen(),
+      ),
 
       // Main shell with bottom nav
       ShellRoute(
@@ -257,6 +263,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/export',
         builder: (ctx, _) => const ExportScreen(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (ctx, _) => const NotificationsScreen(),
       ),
       GoRoute(
         path: '/debts/:id/contract',

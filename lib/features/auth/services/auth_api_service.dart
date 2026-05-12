@@ -160,6 +160,121 @@ class AuthApiService {
     return res.data as Map<String, dynamic>;
   }
 
+  // ── Users ─────────────────────────────────────────────────────────────────
+
+  /// Email yoki Telegram username bo'yicha foydalanuvchi qidirish
+  Future<Map<String, dynamic>> searchUser(String query) async {
+    final res = await _dio.get('/users/search', queryParameters: {'q': query.trim().toLowerCase()});
+    return res.data as Map<String, dynamic>;
+  }
+
+  /// Login dan keyin Neon user_profiles ga profilni yangilash
+  Future<void> upsertProfile({
+    required String displayName,
+    String? avatarUrl,
+    String? telegramUsername,
+  }) async {
+    try {
+      await _dio.post('/users/profile', data: {
+        'displayName': displayName,
+        if (avatarUrl != null) 'avatarUrl': avatarUrl,
+        if (telegramUsername != null) 'telegramUsername': telegramUsername,
+      });
+    } catch (_) {
+      // Non-critical
+    }
+  }
+
+  // ── Notifications ─────────────────────────────────────────────────────────
+
+  /// Xabarnomalar ro'yxatini olish
+  Future<Map<String, dynamic>> getNotifications({bool onlyUnread = false}) async {
+    final res = await _dio.get('/notifications', queryParameters: {
+      if (onlyUnread) 'unread': '1',
+    });
+    return res.data as Map<String, dynamic>;
+  }
+
+  /// Bitta xabarnomani o'qilgan deb belgilash
+  Future<void> markNotificationRead(int remoteId) async {
+    try {
+      await _dio.post('/notifications/$remoteId/read');
+    } catch (_) {}
+  }
+
+  /// Barchasini o'qilgan deb belgilash
+  Future<void> markAllNotificationsRead() async {
+    try {
+      await _dio.post('/notifications/read-all');
+    } catch (_) {}
+  }
+
+  // ── Telegram OTP ──────────────────────────────────────────────────────────
+
+  /// Telegram bog'lash uchun deep-link olish
+  Future<Map<String, dynamic>> telegramStart() =>
+      _post('/auth/telegram/start', {});
+
+  /// Telegram orqali OTP yuborish
+  Future<Map<String, dynamic>> telegramSendOtp(String email) =>
+      _post('/auth/telegram/send-otp', {'email': email.trim().toLowerCase()});
+
+  /// Telegram OTP tasdiqlash
+  Future<Map<String, dynamic>> telegramVerifyOtp({
+    required String email,
+    required String otp,
+    String? displayName,
+    String? deviceName,
+  }) =>
+      _post('/auth/telegram/verify-otp', {
+        'email': email.trim().toLowerCase(),
+        'otp': otp,
+        if (displayName != null) 'displayName': displayName,
+        if (deviceName != null) 'deviceName': deviceName,
+      });
+
+  // ── Debt Requests ──────────────────────────────────────────────────────────
+
+  /// Qarz so'rash yoki qarz berish (cross-user)
+  Future<Map<String, dynamic>> createDebtRequest({
+    String? targetUserId,
+    String? targetEmail,
+    required double amount,
+    String currency = 'UZS',
+    String? note,
+    required String debtType, // 'borrowed' | 'lent'
+    String? dueDate,
+    Map<String, dynamic>? contractData,
+  }) =>
+      _post('/debt-requests', {
+        if (targetUserId != null) 'targetUserId': targetUserId,
+        if (targetEmail != null) 'targetEmail': targetEmail,
+        'amount': amount,
+        'currency': currency,
+        if (note != null) 'note': note,
+        'debtType': debtType,
+        if (dueDate != null) 'dueDate': dueDate,
+        if (contractData != null) 'contractData': contractData,
+      });
+
+  /// Kelgan qarz so'rovlarini olish
+  Future<Map<String, dynamic>> getIncomingDebtRequests() async {
+    final res = await _dio.get('/debt-requests/incoming');
+    return res.data as Map<String, dynamic>;
+  }
+
+  /// Qarz so'rovini qabul qilish
+  Future<void> acceptDebtRequest(String requestId) async {
+    await _dio.post('/debt-requests/$requestId/accept');
+  }
+
+  /// Qarz so'rovini rad etish
+  Future<void> rejectDebtRequest(String requestId, {String? reason}) async {
+    await _dio.post('/debt-requests/$requestId/reject', data: {
+      if (reason != null) 'reason': reason,
+    });
+  }
+
   Future<Map<String, dynamic>> _post(
       String path, Map<String, dynamic> data) async {
     final res = await _dio.post(path, data: data);

@@ -13,4 +13,6 @@ export interface Env {
   RATE_LIMIT_WINDOW: string;
   // Neon PostgreSQL (user data + settlement)
   NEON_DATABASE_URL: string;
+  // Telegram Bot
+  TELEGRAM_BOT_TOKEN: string;
 }

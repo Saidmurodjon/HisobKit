@@ -12,6 +12,8 @@ import '../../core/utils/currency_formatter.dart';
 import '../../core/utils/date_formatter.dart';
 import 'debt_providers.dart';
 import 'trust/trust_providers.dart';
+import '../auth/providers/auth_flow_provider.dart';
+import '../shared/widgets/user_search_widget.dart';
 
 class DebtsScreen extends ConsumerWidget {
   const DebtsScreen({super.key});
@@ -642,6 +644,10 @@ class _DebtFormState extends ConsumerState<_DebtForm> {
   String _currency = 'UZS';
   DateTime? _dueDate;
   bool _isLoading = false;
+  // Cross-user fields
+  String? _targetUserId;
+  String? _targetEmail;
+  String? _targetDisplayName;
 
   @override
   void initState() {
@@ -672,26 +678,59 @@ class _DebtFormState extends ConsumerState<_DebtForm> {
     setState(() => _isLoading = true);
     try {
       final db = ref.read(databaseProvider);
-      final amount = double.parse(_amountController.text);
+      final api = ref.read(authApiServiceProvider);
+      final amount = double.parse(_amountController.text.replaceAll(',', '.'));
+      final personName = _targetDisplayName ?? _nameController.text.trim();
+
       final companion = DebtsCompanion(
         id: widget.existing != null
             ? Value(widget.existing!.id)
             : const Value.absent(),
-        personName: Value(_nameController.text.trim()),
+        personName: Value(personName),
         type: Value(_type),
         amount: Value(amount),
         currency: Value(_currency),
         dueDate: Value(_dueDate),
         note: Value(_noteController.text.trim()),
         isPaid: const Value(false),
+        status: const Value('draft'),
       );
 
+      int debtId;
       if (widget.existing != null) {
         await db.debtsDao.updateDebt(companion);
+        debtId = widget.existing!.id;
       } else {
-        await db.debtsDao.insertDebt(companion);
+        debtId = await db.debtsDao.insertDebt(companion);
       }
+
+      // ── Cross-user notification ────────────────────────────────────────────
+      // Faqat yangi qarz yaratishda va targetUserId/Email bo'lsa
+      if (widget.existing == null &&
+          (_targetUserId != null || _targetEmail != null)) {
+        try {
+          await api.createDebtRequest(
+            targetUserId: _targetUserId,
+            targetEmail: _targetEmail,
+            amount: amount,
+            currency: _currency,
+            note: _noteController.text.trim(),
+            debtType: _type, // 'lent' | 'borrowed'
+            dueDate: _dueDate?.toIso8601String().substring(0, 10),
+            contractData: {'localDebtId': debtId, 'personName': personName},
+          );
+        } catch (e) {
+          // Offline yoki xato bo'lsa — jimgina o'tkazib yuboriladi
+        }
+      }
+
       if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Xato: $e')),
+        );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -728,6 +767,57 @@ class _DebtFormState extends ConsumerState<_DebtForm> {
               onSelectionChanged: (s) => setState(() => _type = s.first),
             ),
             const SizedBox(height: 12),
+            // ── HisobKit foydalanuvchisini qidirish ────────────────────────
+            if (widget.existing == null) ...[
+              UserSearchWidget(
+                labelText: 'HisobKit foydalanuvchisi (ixtiyoriy)',
+                hintText: 'Email yoki @telegram kiriting',
+                onUserSelected: (u) {
+                  setState(() {
+                    _targetUserId = u.id;
+                    _targetEmail = u.email;
+                    _targetDisplayName = u.displayName;
+                    _nameController.text = u.displayName;
+                  });
+                },
+                onEmailEntered: (email) {
+                  setState(() {
+                    _targetUserId = null;
+                    _targetEmail = email;
+                    _targetDisplayName = null;
+                  });
+                },
+                onInvite: (email) {
+                  setState(() {
+                    _targetEmail = email;
+                    _targetDisplayName = null;
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                          '$email ga qarz so\'rovi yuboriladi (taklif)'),
+                    ),
+                  );
+                },
+              ),
+              if (_targetDisplayName != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: 6, bottom: 2),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.check_circle,
+                          color: AppTheme.accent, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        '$_targetDisplayName tanlandi (HisobKit)',
+                        style: const TextStyle(
+                            fontSize: 12, color: AppTheme.accent),
+                      ),
+                    ],
+                  ),
+                ),
+              const Divider(height: 20),
+            ],
             TextField(
               controller: _nameController,
               decoration:

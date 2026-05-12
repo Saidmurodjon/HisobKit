@@ -5,6 +5,10 @@ import { secureHeaders } from 'hono/secure-headers';
 import authRoutes from './routes/auth.ts';
 import syncRoutes from './routes/sync.ts';
 import settlementRoutes from './routes/settlement.ts';
+import usersRoutes from './routes/users.ts';
+import notificationsRoutes from './routes/notifications.ts';
+import telegramRoutes from './routes/telegram.ts';
+import debtRequestsRoutes from './routes/debt-requests.ts';
 import type { Env } from './types/env.d.ts';
 
 const app = new Hono<{ Bindings: Env }>();
@@ -20,12 +24,16 @@ app.use('*', cors({
 app.get('/', c => c.json({
   name: 'HisobKit API',
   status: 'ok',
-  version: '1.0.0',
+  version: '1.5.0',
 }));
 
 app.route('/auth', authRoutes);
+app.route('/auth/telegram', telegramRoutes);
 app.route('/sync', syncRoutes);
 app.route('/settlement', settlementRoutes);
+app.route('/users', usersRoutes);
+app.route('/notifications', notificationsRoutes);
+app.route('/debt-requests', debtRequestsRoutes);
 
 app.notFound(c => c.json({ error: 'Topilmadi' }, 404));
 app.onError((err, c) => {

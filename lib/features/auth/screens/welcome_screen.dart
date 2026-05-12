@@ -275,6 +275,37 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                   ),
                 ),
 
+                const SizedBox(height: 12),
+
+                // Telegram button
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: OutlinedButton(
+                    onPressed:
+                        isLoading ? null : () => context.push('/auth/telegram'),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                          color: Color(0xFF0088CC), width: 1.5),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.telegram,
+                            color: Color(0xFF0088CC), size: 22),
+                        const SizedBox(width: 10),
+                        Text('Telegram orqali kirish',
+                            style: GoogleFonts.inter(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF0088CC))),
+                      ],
+                    ),
+                  ),
+                ),
+
                 const Spacer(),
 
                 // Skip button — offline mode

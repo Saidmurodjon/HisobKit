@@ -281,6 +281,23 @@ class PeriodTransfers extends Table {
   BoolColumn get isPaid => boolean().withDefault(const Constant(false))();
 }
 
+// ── App Notifications (local cache for cross-user notifications) ──────────────
+class AppNotifications extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  // Remote id from Neon (nullable until synced)
+  IntColumn get remoteId => integer().nullable()();
+  TextColumn get senderId => text().nullable()();
+  TextColumn get senderName => text().withDefault(const Constant(''))();
+  // type: debt_request | debt_offer | debt_accepted | debt_rejected | system
+  TextColumn get type => text().withDefault(const Constant('system'))();
+  TextColumn get title => text().withDefault(const Constant(''))();
+  TextColumn get body => text().withDefault(const Constant(''))();
+  // JSON string of extra data
+  TextColumn get data => text().withDefault(const Constant('{}'))();
+  BoolColumn get isRead => boolean().withDefault(const Constant(false))();
+  DateTimeColumn get createdAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // ── Sync Queue ────────────────────────────────────────────────────────────────
 class SyncQueue extends Table {
   IntColumn get id => integer().autoIncrement()();

@@ -15,6 +15,7 @@ import '../budgets/budget_providers.dart';
 import '../debts/debt_providers.dart';
 import '../auth/providers/auth_flow_provider.dart';
 import '../auth/models/auth_state.dart' show AuthFlowSuccess;
+import '../notifications/notifications_provider.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -144,6 +145,8 @@ class _HeroBalanceCard extends ConsumerWidget {
                     ),
                   ),
                   const Spacer(),
+                  // ── Notification bell ────────────────────────────────
+                  _NotifBell(),
                   IconButton(
                     icon: const Icon(Icons.account_balance_wallet_outlined,
                         color: Colors.white70),
@@ -881,6 +884,29 @@ class _EmptyState extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+// ── Notification Bell (badge) ─────────────────────────────────────────────────
+class _NotifBell extends ConsumerWidget {
+  const _NotifBell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final countAsync = ref.watch(unreadNotifCountProvider);
+    final count = countAsync.value ?? 0;
+
+    return IconButton(
+      tooltip: 'Xabarnomalar',
+      onPressed: () => context.push('/notifications'),
+      icon: Badge(
+        isLabelVisible: count > 0,
+        label: Text(count > 99 ? '99+' : '$count',
+            style: const TextStyle(fontSize: 10)),
+        backgroundColor: Colors.redAccent,
+        child: const Icon(Icons.notifications_outlined, color: Colors.white70),
       ),
     );
   }

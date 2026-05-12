@@ -10,24 +10,31 @@ class TokenService {
 
   final FlutterSecureStorage _storage;
 
+  static const _timeout = Duration(seconds: 5);
+
   TokenService()
       : _storage = const FlutterSecureStorage(
-          aOptions: AndroidOptions(encryptedSharedPreferences: true),
+          aOptions: AndroidOptions(encryptedSharedPreferences: false),
         );
 
   Future<void> saveTokens({
     required String access,
     required String refresh,
   }) async {
-    await Future.wait([
-      _storage.write(key: _accessKey, value: access),
-      _storage.write(key: _refreshKey, value: refresh),
-    ]);
+    try {
+      await Future.wait([
+        _storage.write(key: _accessKey, value: access).timeout(_timeout),
+        _storage.write(key: _refreshKey, value: refresh).timeout(_timeout),
+      ]);
+    } catch (_) {}
   }
 
   Future<String> getOrCreateDeviceId() async {
-    final existing = await _storage.read(key: _deviceKey);
-    if (existing != null) return existing;
+    try {
+      final existing =
+          await _storage.read(key: _deviceKey).timeout(_timeout);
+      if (existing != null) return existing;
+    } catch (_) {}
     // Simple UUID v4 generation without external package
     final bytes = List<int>.generate(16, (_) {
       return DateTime.now().microsecondsSinceEpoch & 0xFF;
@@ -37,20 +44,41 @@ class TokenService {
     String hex(int b) => b.toRadixString(16).padLeft(2, '0');
     final id =
         '${bytes.sublist(0, 4).map(hex).join()}-${bytes.sublist(4, 6).map(hex).join()}-${bytes.sublist(6, 8).map(hex).join()}-${bytes.sublist(8, 10).map(hex).join()}-${bytes.sublist(10).map(hex).join()}';
-    await _storage.write(key: _deviceKey, value: id);
+    try {
+      await _storage.write(key: _deviceKey, value: id).timeout(_timeout);
+    } catch (_) {}
     return id;
   }
 
-  Future<String?> getAccessToken() => _storage.read(key: _accessKey);
-  Future<String?> getRefreshToken() => _storage.read(key: _refreshKey);
+  Future<String?> getAccessToken() async {
+    try {
+      return await _storage.read(key: _accessKey).timeout(_timeout);
+    } catch (_) {
+      return null;
+    }
+  }
 
-  Future<void> saveUser(UserModel user) =>
-      _storage.write(key: _userKey, value: user.toJsonString());
+  Future<String?> getRefreshToken() async {
+    try {
+      return await _storage.read(key: _refreshKey).timeout(_timeout);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> saveUser(UserModel user) async {
+    try {
+      await _storage
+          .write(key: _userKey, value: user.toJsonString())
+          .timeout(_timeout);
+    } catch (_) {}
+  }
 
   Future<UserModel?> getUser() async {
-    final data = await _storage.read(key: _userKey);
-    if (data == null) return null;
     try {
+      final data =
+          await _storage.read(key: _userKey).timeout(_timeout);
+      if (data == null) return null;
       return UserModel.fromJsonString(data);
     } catch (_) {
       return null;
@@ -60,15 +88,41 @@ class TokenService {
   static const _pinKey = 'hk_pin_code';
   static const _langKey = 'hk_language';
 
-  Future<void> savePin(String pin) =>
-      _storage.write(key: _pinKey, value: pin);
-  Future<String?> getPin() => _storage.read(key: _pinKey);
+  Future<void> savePin(String pin) async {
+    try {
+      await _storage.write(key: _pinKey, value: pin).timeout(_timeout);
+    } catch (_) {}
+  }
 
-  Future<void> saveLanguage(String lang) =>
-      _storage.write(key: _langKey, value: lang);
-  Future<String?> getLanguage() => _storage.read(key: _langKey);
+  Future<String?> getPin() async {
+    try {
+      return await _storage.read(key: _pinKey).timeout(_timeout);
+    } catch (_) {
+      return null;
+    }
+  }
 
-  Future<void> clearAll() => _storage.deleteAll();
+  Future<void> saveLanguage(String lang) async {
+    try {
+      await _storage
+          .write(key: _langKey, value: lang)
+          .timeout(_timeout);
+    } catch (_) {}
+  }
+
+  Future<String?> getLanguage() async {
+    try {
+      return await _storage.read(key: _langKey).timeout(_timeout);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Future<void> clearAll() async {
+    try {
+      await _storage.deleteAll().timeout(_timeout);
+    } catch (_) {}
+  }
 
   bool isTokenExpired(String token) {
     try {

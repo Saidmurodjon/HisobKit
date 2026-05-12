@@ -41,7 +41,7 @@ telegram.post('/start', authMiddleware, async (c) => {
   const connectCode = Math.random().toString(36).substring(2, 10).toUpperCase();
   await c.env.AUTH_KV.put(`tg_connect:${connectCode}`, userId, { expirationTtl: 600 });
 
-  const botUsername = 'HisobKitBot'; // Your bot username
+  const botUsername = 'HisobKitBot';
   return c.json({
     connectUrl: `https://t.me/${botUsername}?start=${connectCode}`,
     code: connectCode,

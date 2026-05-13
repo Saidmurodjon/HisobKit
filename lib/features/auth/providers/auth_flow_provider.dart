@@ -195,6 +195,10 @@ class AuthFlowNotifier extends StateNotifier<AuthFlowState> {
     state = const AuthInitial();
   }
 
+  // ── Telegram tap-to-confirm success ─────────────────────────────────────────
+  /// TelegramOtpScreen dan chaqiriladi — tokenlarni saqlaydi va AuthSuccess ni o'rnatadi
+  Future<void> setTelegramSuccess(Map<String, dynamic> res) => _handleSuccess(res);
+
   // ── Back to initial ─────────────────────────────────────────────────────────
   void goBack() => state = const AuthInitial();
 

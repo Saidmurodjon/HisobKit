@@ -159,13 +159,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       if (next is AuthNeedsProfile && _page == 1) {
         context.push('/auth/profile');
       }
-      if (next is AuthSuccess && _page == 1) {
+      if (next is AuthSuccess && _page <= 1) {
         ref.read(authProvider.notifier).unlock();
         ref.read(onboardingPageProvider.notifier).state = 2;
-        _pageController.nextPage(
+        _pageController.animateToPage(
+          2,
           duration: const Duration(milliseconds: 350),
           curve: Curves.easeInOut,
         );
+        setState(() => _page = 2);
       }
     });
 
@@ -181,6 +183,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               _WelcomePage(
                 selectedLanguage: _selectedLanguage,
                 onLanguageSelect: (l) => setState(() => _selectedLanguage = l),
+                onTelegramLogin: () => context.push(
+                  '/auth/telegram',
+                  extra: {'isOnboarding': true},
+                ),
               ),
               // Page 1: Cloud auth (optional)
               const _EmailAuthPage(),
@@ -282,10 +288,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
 class _WelcomePage extends StatelessWidget {
   final String selectedLanguage;
   final void Function(String) onLanguageSelect;
+  final VoidCallback? onTelegramLogin;
 
   const _WelcomePage({
     required this.selectedLanguage,
     required this.onLanguageSelect,
+    this.onTelegramLogin,
   });
 
   @override
@@ -393,6 +401,39 @@ class _WelcomePage extends StatelessWidget {
                   ),
                 ),
               )),
+
+          // ── Telegram quick-login ───────────────────────────────────────
+          const SizedBox(height: 20),
+          Divider(
+            color: Theme.of(context).dividerTheme.color ?? Colors.grey.shade300,
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: 52,
+            child: OutlinedButton(
+              onPressed: onTelegramLogin,
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Color(0xFF0088CC), width: 1.5),
+                foregroundColor: const Color(0xFF0088CC),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.telegram, color: Color(0xFF0088CC), size: 22),
+                  SizedBox(width: 8),
+                  Text(
+                    'Telegram orqali kirish',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF0088CC)),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

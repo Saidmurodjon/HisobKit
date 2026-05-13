@@ -261,6 +261,95 @@ telegram.post('/webhook', async (c) => {
           '✅ Telegram muvaffaqiyatli bog\'landi! Endi siz Telegram orqali kirishingiz mumkin.',
         );
       }
+    } else if (callbackData.startsWith('register:')) {
+      // ── NEW USER REGISTRATION via Telegram ──────────────────────────────
+      const code = callbackData.slice(9);
+
+      const pending = await c.env.AUTH_KV.get(`tg_login:${code}`);
+      if (!pending) {
+        await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, 'Kod muddati o\'tgan');
+        return c.json({ ok: true });
+      }
+
+      const tgUsername = String(query.from?.username ?? '');
+      const firstName  = String(query.from?.first_name ?? '');
+      const displayName = tgUsername ? `@${tgUsername}` : (firstName || 'Foydalanuvchi');
+      const placeholderEmail = `tg_${chatId}@hisobkit.local`;
+      const now = Math.floor(Date.now() / 1000);
+
+      // ── 1. Create D1 user (INSERT OR IGNORE to be idempotent) ──────────
+      const newUserId = uuid();
+      let userId = newUserId;
+      try {
+        await c.env.DB.prepare(
+          `INSERT OR IGNORE INTO users (id, email, display_name, created_at) VALUES (?, ?, ?, ?)`,
+        ).bind(newUserId, placeholderEmail, displayName, now).run();
+
+        // If the email already exists (race), look it up
+        const existing = await c.env.DB.prepare(
+          `SELECT id FROM users WHERE email = ?`,
+        ).bind(placeholderEmail).first<{ id: string }>();
+        if (existing) userId = existing.id;
+      } catch (e) {
+        console.error('D1 register insert:', e);
+        await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, 'Server xatosi');
+        return c.json({ ok: true });
+      }
+
+      // ── 2. Upsert Neon profile with telegram_chat_id ────────────────────
+      const sql = getSql(c.env.NEON_DATABASE_URL);
+      try {
+        await sql`
+          INSERT INTO user_profiles (user_id, display_name, email, telegram_chat_id, telegram_username)
+          VALUES (${userId}, ${displayName}, ${placeholderEmail}, ${chatId}, ${tgUsername || null})
+          ON CONFLICT (user_id) DO UPDATE SET
+            telegram_chat_id  = EXCLUDED.telegram_chat_id,
+            telegram_username = EXCLUDED.telegram_username
+        `;
+      } catch (e) {
+        console.error('Neon register upsert:', e);
+        await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, 'Server xatosi');
+        return c.json({ ok: true });
+      }
+
+      // ── 3. Device + JWT ─────────────────────────────────────────────────
+      const deviceId = uuid();
+      try {
+        await c.env.DB.prepare(
+          `INSERT INTO user_devices (id, user_id, device_name, platform, last_active) VALUES (?, ?, ?, 'android', ?)`,
+        ).bind(deviceId, userId, 'Telegram Registration', now).run();
+      } catch { /* ignore duplicate */ }
+
+      const { accessToken, refreshToken } = await createTokenPair(
+        userId, placeholderEmail, deviceId, c.env.AUTH_KV, c.env.JWT_SECRET,
+        parseInt(c.env.ACCESS_TOKEN_TTL), parseInt(c.env.REFRESH_TOKEN_TTL),
+      );
+
+      // ── 4. Store result for app to pick up ──────────────────────────────
+      await c.env.AUTH_KV.put(`tg_login_result:${code}`, JSON.stringify({
+        accessToken,
+        refreshToken,
+        user: {
+          id: userId,
+          displayName,
+          email: placeholderEmail,
+          avatarUrl: null,
+          providers: ['telegram'],
+          createdAt: now,
+        },
+      }), { expirationTtl: 60 });
+      await c.env.AUTH_KV.delete(`tg_login:${code}`);
+
+      // ── 5. Confirm in bot ────────────────────────────────────────────────
+      await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, '✅ Hisob yaratildi!');
+      if (messageId) {
+        await editMessageText(
+          c.env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `✅ <b>HisobKit</b> hisobi muvaffaqiyatli yaratildi!\n\n`
+          + `👤 Ism: <b>${displayName}</b>\n\n`
+          + `Ilovaga qayting — kirish avtomatik amalga oshadi.`,
+        );
+      }
     }
 
     return c.json({ ok: true });
@@ -310,12 +399,19 @@ telegram.post('/webhook', async (c) => {
     }
 
     if (!isLinked) {
-      await sendTelegramMessage(c.env.TELEGRAM_BOT_TOKEN, chatId,
-        '❌ Bu Telegram hisobi HisobKit ga bog\'lanmagan.\n\n'
-        + 'Kirish uchun:\n'
-        + '1. HisobKit ilovasida email orqali kiring\n'
-        + '2. Sozlamalar → Telegram bog\'lash\n'
-        + '3. Keyin Telegram orqali kirishni ishlating');
+      // Offer to create a new account directly via Telegram
+      await sendInlineKeyboard(
+        c.env.TELEGRAM_BOT_TOKEN,
+        chatId,
+        '👋 Salom!\n\n'
+        + 'Bu Telegram hisobi HisobKit ga bog\'lanmagan.\n\n'
+        + '✨ Yangi hisob yaratib, darhol kirishni xohlaysizmi?\n'
+        + '(Email talab qilinmaydi)',
+        [
+          [{ text: '✅ Yangi hisob yaratish', callback_data: `register:${code}` }],
+          [{ text: '❌ Bekor qilish',          callback_data: `cancel:${code}` }],
+        ],
+      );
       return c.json({ ok: true });
     }
 

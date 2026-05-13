@@ -6,8 +6,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/auth_flow_provider.dart';
-import '../services/token_service.dart';
-import '../models/user_model.dart';
 
 // ── State ─────────────────────────────────────────────────────────────────────
 enum _TgStep { idle, waitingConfirm, confirmed, expired, error }
@@ -49,7 +47,11 @@ class _TgState {
 
 // ─────────────────────────────────────────────────────────────────────────────
 class TelegramOtpScreen extends ConsumerStatefulWidget {
-  const TelegramOtpScreen({super.key});
+  /// [isOnboarding] = true bo'lsa, tasdiqlangach `/onboarding` ga qaytadi
+  /// va authFlowProvider ni AuthSuccess holatiga keltiradi.
+  final bool isOnboarding;
+
+  const TelegramOtpScreen({super.key, this.isOnboarding = false});
 
   @override
   ConsumerState<TelegramOtpScreen> createState() => _TelegramOtpScreenState();
@@ -166,18 +168,21 @@ class _TelegramOtpScreenState extends ConsumerState<TelegramOtpScreen> {
   }
 
   Future<void> _handleConfirmed(Map<String, dynamic> res) async {
-    final tokens = ref.read(tokenServiceProvider);
-    final user = UserModel.fromJson(res['user'] as Map<String, dynamic>);
-    await tokens.saveTokens(
-      access: res['accessToken'] as String,
-      refresh: res['refreshToken'] as String,
-    );
-    await tokens.saveUser(user);
+    // Tokenlarni saqlash va authFlowProvider holatini AuthSuccess ga keltirish
+    await ref.read(authFlowProvider.notifier).setTelegramSuccess(res);
 
     if (mounted) {
       setState(() => _s = _s.copyWith(step: _TgStep.confirmed));
       await Future.delayed(const Duration(milliseconds: 800));
-      if (mounted) context.go('/');
+      if (mounted) {
+        if (widget.isOnboarding) {
+          // Onboarding davomida → onboarding ekraniga qaytish
+          // (authFlowProvider AuthSuccess holatida bo'lgani uchun sahifa 2 ga o'tadi)
+          context.go('/onboarding');
+        } else {
+          context.go('/');
+        }
+      }
     }
   }
 
@@ -478,8 +483,7 @@ class _TelegramOtpScreenState extends ConsumerState<TelegramOtpScreen> {
           const _Step(n: '3', text: '"✅ Tasdiqlash" ni bosing → Ilova o\'zi kiradi'),
           const SizedBox(height: 8),
           Text(
-            '⚠️ Ishlashi uchun avval ilovada Telegram ni bog\'langan bo\'lishi kerak\n'
-            '(Sozlamalar → Telegram bog\'lash)',
+            '💡 Agar Telegram hisobingiz bog\'lanmagan bo\'lsa — yangi hisob yaratish taklif qilinadi.',
             style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
           ),
         ],

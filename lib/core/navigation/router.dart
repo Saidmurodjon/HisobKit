@@ -85,8 +85,8 @@ class _RouterNotifier extends ChangeNotifier {
 
     // ── Onboarding ───────────────────────────────────────────────────────────
     if (!onboardingDone) {
-      // Allow OTP and profile screens to show during onboarding email auth
-      if (loc == '/auth/otp' || loc == '/auth/profile') return null;
+      // Allow OTP, profile, and Telegram screens during onboarding auth
+      if (loc == '/auth/otp' || loc == '/auth/profile' || loc == '/auth/telegram') return null;
       return isOnboarding ? null : '/onboarding';
     }
 
@@ -157,7 +157,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/auth/telegram',
-        builder: (ctx, _) => const TelegramOtpScreen(),
+        builder: (ctx, state) {
+          final extra = state.extra as Map<String, dynamic>?;
+          final isOnboarding = extra?['isOnboarding'] as bool? ?? false;
+          return TelegramOtpScreen(isOnboarding: isOnboarding);
+        },
       ),
 
       // Main shell with bottom nav

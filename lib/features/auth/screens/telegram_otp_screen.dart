@@ -1,49 +1,53 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:dio/dio.dart';
 import '../../../core/theme/app_theme.dart';
 import '../providers/auth_flow_provider.dart';
-import '../services/auth_api_service.dart';
 import '../services/token_service.dart';
 import '../models/user_model.dart';
 
 // ── State ─────────────────────────────────────────────────────────────────────
-enum _TgStep { enterEmail, otpSent, done }
+enum _TgStep { idle, waitingConfirm, confirmed, expired, error }
 
-class _TgOtpState {
+class _TgState {
   final _TgStep step;
-  final String email;
+  final String code;
+  final String deepLink;
   final bool loading;
-  final String? error;
-  final int expiresIn;
+  final String? errorMsg;
+  final int secondsLeft;
 
-  const _TgOtpState({
-    this.step = _TgStep.enterEmail,
-    this.email = '',
+  const _TgState({
+    this.step = _TgStep.idle,
+    this.code = '',
+    this.deepLink = '',
     this.loading = false,
-    this.error,
-    this.expiresIn = 300,
+    this.errorMsg,
+    this.secondsLeft = 300,
   });
 
-  _TgOtpState copyWith({
+  _TgState copyWith({
     _TgStep? step,
-    String? email,
+    String? code,
+    String? deepLink,
     bool? loading,
-    String? error,
-    int? expiresIn,
+    String? errorMsg,
+    int? secondsLeft,
   }) =>
-      _TgOtpState(
+      _TgState(
         step: step ?? this.step,
-        email: email ?? this.email,
+        code: code ?? this.code,
+        deepLink: deepLink ?? this.deepLink,
         loading: loading ?? this.loading,
-        error: error,
-        expiresIn: expiresIn ?? this.expiresIn,
+        errorMsg: errorMsg,
+        secondsLeft: secondsLeft ?? this.secondsLeft,
       );
 }
 
-// ── Screen ────────────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
 class TelegramOtpScreen extends ConsumerStatefulWidget {
   const TelegramOtpScreen({super.key});
 
@@ -52,128 +56,151 @@ class TelegramOtpScreen extends ConsumerStatefulWidget {
 }
 
 class _TelegramOtpScreenState extends ConsumerState<TelegramOtpScreen> {
-  _TgOtpState _state = const _TgOtpState();
-
-  final _emailCtrl = TextEditingController();
-  final _otpCtrl = TextEditingController();
-  final _nameCtrl = TextEditingController();
-  final _emailKey = GlobalKey<FormState>();
-  final _otpKey = GlobalKey<FormState>();
+  _TgState _s = const _TgState();
+  Timer? _pollTimer;
+  Timer? _countdownTimer;
+  int _pollErrors = 0;
 
   @override
   void dispose() {
-    _emailCtrl.dispose();
-    _otpCtrl.dispose();
-    _nameCtrl.dispose();
+    _pollTimer?.cancel();
+    _countdownTimer?.cancel();
     super.dispose();
   }
 
-  // ── Send OTP via Telegram ─────────────────────────────────────────────────
-  Future<void> _sendOtp() async {
-    if (!(_emailKey.currentState?.validate() ?? false)) return;
-    setState(() => _state = _state.copyWith(loading: true, error: null));
+  // ── 1. Telegram login start ───────────────────────────────────────────────
+  Future<void> _startTelegramLogin() async {
+    setState(() => _s = _s.copyWith(loading: true, errorMsg: null));
 
     final api = ref.read(authApiServiceProvider);
     try {
-      final res = await api.telegramSendOtp(_emailCtrl.text.trim());
-      setState(() => _state = _state.copyWith(
-            step: _TgStep.otpSent,
-            email: _emailCtrl.text.trim().toLowerCase(),
+      final res = await api.telegramLoginStart();
+      final code = res['code'] as String;
+      final deepLink = res['deepLink'] as String;
+      final expiresIn = (res['expiresIn'] as int? ?? 300);
+
+      setState(() => _s = _s.copyWith(
+            step: _TgStep.waitingConfirm,
+            code: code,
+            deepLink: deepLink,
             loading: false,
-            expiresIn: res['expiresIn'] as int? ?? 300,
+            secondsLeft: expiresIn,
           ));
+
+      // Telegram ilovasini ochish
+      await _openTelegram(deepLink);
+
+      // Polling va countdown ni boshlash
+      _startPolling(code);
+      _startCountdown(expiresIn);
     } on DioException catch (e) {
-      final data = e.response?.data as Map<String, dynamic>?;
-      final msg = data?['error'] as String?;
-      if (msg != null && msg.contains('bog\'lanmagan')) {
-        setState(() => _state = _state.copyWith(
-              loading: false,
-              error:
-                  'Bu email Telegram ga bog\'lanmagan.\nAvval ilovada Telegram ni bog\'lang.',
-            ));
-      } else {
-        setState(() =>
-            _state = _state.copyWith(loading: false, error: msg ?? 'Xato'));
-      }
+      final msg =
+          (e.response?.data as Map<String, dynamic>?)?['error'] as String? ??
+              'Server bilan bog\'lanib bo\'lmadi';
+      setState(() => _s = _s.copyWith(loading: false, errorMsg: msg));
     } catch (e) {
-      setState(() => _state = _state.copyWith(loading: false, error: '$e'));
+      setState(() => _s = _s.copyWith(loading: false, errorMsg: '$e'));
     }
   }
 
-  // ── Verify OTP ────────────────────────────────────────────────────────────
-  Future<void> _verifyOtp() async {
-    if (!(_otpKey.currentState?.validate() ?? false)) return;
-    setState(() => _state = _state.copyWith(loading: true, error: null));
-
-    final api = ref.read(authApiServiceProvider);
-    final tokens = ref.read(tokenServiceProvider);
+  // ── 2. Telegram ilovasini ochish ─────────────────────────────────────────
+  Future<void> _openTelegram(String deepLink) async {
+    // Avval Telegram ilovasini ochishga harakat qilamiz
+    final tgUri = Uri.parse(deepLink.replaceFirst('https://t.me/', 'tg://resolve?domain=HisobKitBot&start=').replaceAll('?start=', '&start='));
+    final webUri = Uri.parse(deepLink);
 
     try {
-      final res = await api.telegramVerifyOtp(
-        email: _state.email,
-        otp: _otpCtrl.text.trim(),
-        displayName:
-            _nameCtrl.text.trim().isNotEmpty ? _nameCtrl.text.trim() : null,
-      );
+      if (await canLaunchUrl(tgUri)) {
+        await launchUrl(tgUri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (_) {
+      await launchUrl(webUri, mode: LaunchMode.externalApplication);
+    }
+  }
 
-      if (res['code'] == 'needs_profile') {
-        setState(
-            () => _state = _state.copyWith(loading: false, error: null));
-        // Show name field
-        _showNameDialog();
+  // ── 3. Polling — har 2 sekundda tekshirish ────────────────────────────────
+  void _startPolling(String code) {
+    _pollErrors = 0;
+    _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
+      if (!mounted) {
+        _pollTimer?.cancel();
         return;
       }
+      await _checkConfirmation(code);
+    });
+  }
 
-      final user = UserModel.fromJson(res['user'] as Map<String, dynamic>);
-      await tokens.saveTokens(
-        access: res['accessToken'] as String,
-        refresh: res['refreshToken'] as String,
-      );
-      await tokens.saveUser(user);
+  Future<void> _checkConfirmation(String code) async {
+    final api = ref.read(authApiServiceProvider);
+    try {
+      final res = await api.telegramCheckLogin(code);
+      final status = res['status'] as String? ?? 'pending';
 
-      setState(
-          () => _state = _state.copyWith(loading: false, step: _TgStep.done));
-
-      if (mounted) context.go('/');
-    } on DioException catch (e) {
-      final data = e.response?.data as Map<String, dynamic>?;
-      setState(() => _state = _state.copyWith(
-            loading: false,
-            error: data?['error'] as String? ?? 'Kod noto\'g\'ri',
-          ));
-    } catch (e) {
-      setState(() => _state = _state.copyWith(loading: false, error: '$e'));
+      if (status == 'confirmed') {
+        _pollTimer?.cancel();
+        _countdownTimer?.cancel();
+        await _handleConfirmed(res);
+      } else if (status == 'expired') {
+        _pollTimer?.cancel();
+        _countdownTimer?.cancel();
+        if (mounted) {
+          setState(() => _s = _s.copyWith(step: _TgStep.expired));
+        }
+      }
+      // 'pending' → davom etish
+    } catch (_) {
+      _pollErrors++;
+      if (_pollErrors >= 10) {
+        // 10 ta xato ketma-ket → to'xtatish
+        _pollTimer?.cancel();
+        if (mounted) {
+          setState(() => _s = _s.copyWith(
+                step: _TgStep.error,
+                errorMsg: 'Internet aloqasi uzildi. Qaytadan urinib ko\'ring.',
+              ));
+        }
+      }
     }
   }
 
-  void _showNameDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Ismingizni kiriting'),
-        content: TextField(
-          controller: _nameCtrl,
-          decoration: const InputDecoration(
-            labelText: 'To\'liq ism',
-            prefixIcon: Icon(Icons.person),
-          ),
-          textCapitalization: TextCapitalization.words,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Bekor'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _verifyOtp();
-            },
-            child: const Text('Davom'),
-          ),
-        ],
-      ),
+  Future<void> _handleConfirmed(Map<String, dynamic> res) async {
+    final tokens = ref.read(tokenServiceProvider);
+    final user = UserModel.fromJson(res['user'] as Map<String, dynamic>);
+    await tokens.saveTokens(
+      access: res['accessToken'] as String,
+      refresh: res['refreshToken'] as String,
     );
+    await tokens.saveUser(user);
+
+    if (mounted) {
+      setState(() => _s = _s.copyWith(step: _TgStep.confirmed));
+      await Future.delayed(const Duration(milliseconds: 800));
+      if (mounted) context.go('/');
+    }
+  }
+
+  // ── 4. Countdown ──────────────────────────────────────────────────────────
+  void _startCountdown(int seconds) {
+    _countdownTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted) return;
+      final left = _s.secondsLeft - 1;
+      if (left <= 0) {
+        _countdownTimer?.cancel();
+        _pollTimer?.cancel();
+        setState(() => _s = _s.copyWith(step: _TgStep.expired, secondsLeft: 0));
+      } else {
+        setState(() => _s = _s.copyWith(secondsLeft: left));
+      }
+    });
+  }
+
+  // ── Reset ─────────────────────────────────────────────────────────────────
+  void _reset() {
+    _pollTimer?.cancel();
+    _countdownTimer?.cancel();
+    setState(() => _s = const _TgState());
   }
 
   @override
@@ -183,7 +210,11 @@ class _TelegramOtpScreenState extends ConsumerState<TelegramOtpScreen> {
         title: const Text('Telegram orqali kirish'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+          onPressed: () {
+            _pollTimer?.cancel();
+            _countdownTimer?.cancel();
+            context.pop();
+          },
         ),
       ),
       body: SingleChildScrollView(
@@ -191,206 +222,370 @@ class _TelegramOtpScreenState extends ConsumerState<TelegramOtpScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Telegram logo / header
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF0088CC).withOpacity(0.08),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                children: [
-                  const Icon(Icons.telegram, size: 56, color: Color(0xFF0088CC)),
-                  const SizedBox(height: 12),
-                  Text(
-                    _state.step == _TgStep.enterEmail
-                        ? 'Email kiritingki, Telegram kodini oling'
-                        : 'Telegram ga kod yuborildi',
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (_state.step == _TgStep.otpSent) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      '📱 ${_state.email}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: 28),
-
-            // Step 1: Email
-            if (_state.step == _TgStep.enterEmail)
-              Form(
-                key: _emailKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _emailCtrl,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        labelText: 'Email',
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Email shart';
-                        if (!v.contains('@')) return 'Email noto\'g\'ri';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton.icon(
-                      onPressed: _state.loading ? null : _sendOtp,
-                      icon: _state.loading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2))
-                          : const Icon(Icons.send),
-                      label: Text(
-                          _state.loading ? 'Yuborilmoqda...' : 'Telegram kod olish'),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                        backgroundColor: const Color(0xFF0088CC),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-            // Step 2: OTP
-            if (_state.step == _TgStep.otpSent)
-              Form(
-                key: _otpKey,
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _otpCtrl,
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        LengthLimitingTextInputFormatter(6),
-                      ],
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 8),
-                      decoration: const InputDecoration(
-                        labelText: 'Telegram kodi',
-                        hintText: '000000',
-                        prefixIcon: Icon(Icons.lock_outlined),
-                      ),
-                      validator: (v) {
-                        if (v == null || v.length != 6) return '6 raqamli kod kiriting';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${_state.expiresIn ~/ 60} daqiqa amal qiladi',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton.icon(
-                      onPressed: _state.loading ? null : _verifyOtp,
-                      icon: _state.loading
-                          ? const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2))
-                          : const Icon(Icons.check),
-                      label: Text(_state.loading ? 'Tekshirilmoqda...' : 'Tasdiqlash'),
-                      style: FilledButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () =>
-                          setState(() => _state = _state.copyWith(
-                                step: _TgStep.enterEmail,
-                                error: null,
-                              )),
-                      child: const Text('Emailni o\'zgartirish'),
-                    ),
-                  ],
-                ),
-              ),
-
-            // Error message
-            if (_state.error != null) ...[
-              const SizedBox(height: 16),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.red.shade50,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.red.shade200),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.red, size: 18),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        _state.error!,
-                        style: const TextStyle(
-                            color: Colors.red, fontSize: 13),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-
-            // Help text
+            _buildHeader(),
             const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(14),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Icon(Icons.info_outline, size: 16, color: Colors.grey),
-                      SizedBox(width: 6),
-                      Text('Telegram ga qanday bog\'lash?',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w600, fontSize: 13)),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    '1. Sozlamalar → Hisobim → Telegram bog\'lash\n'
-                    '2. Tugmani bosing va botni oching\n'
-                    '3. /start komandasini yuboring\n'
-                    '4. Qaytib keling va bu ekrandan kiring',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
-                  ),
-                ],
-              ),
-            ),
+            _buildContent(context),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0088CC).withOpacity(0.08),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Column(
+        children: [
+          const Icon(Icons.telegram, size: 64, color: Color(0xFF0088CC)),
+          const SizedBox(height: 12),
+          Text(
+            _headerText(),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+          ),
+          if (_s.step == _TgStep.waitingConfirm) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Telegram ilovasi ochildimi? Bot xabari kuting.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  String _headerText() {
+    switch (_s.step) {
+      case _TgStep.idle:
+        return 'Telegramda bir tugma bilan kiring';
+      case _TgStep.waitingConfirm:
+        return 'Telegram botda "✅ Tasdiqlash" tugmasini bosing';
+      case _TgStep.confirmed:
+        return '✅ Tasdiqlandi! Kirmoqdasiz...';
+      case _TgStep.expired:
+        return '⏰ Vaqt tugadi. Qaytadan urinib ko\'ring.';
+      case _TgStep.error:
+        return '❌ Xatolik yuz berdi';
+    }
+  }
+
+  Widget _buildContent(BuildContext context) {
+    switch (_s.step) {
+      case _TgStep.idle:
+        return _buildIdleStep();
+      case _TgStep.waitingConfirm:
+        return _buildWaitingStep();
+      case _TgStep.confirmed:
+        return _buildConfirmedStep();
+      case _TgStep.expired:
+        return _buildExpiredStep();
+      case _TgStep.error:
+        return _buildErrorStep();
+    }
+  }
+
+  // ── Idle: "Telegram orqali kirish" tugmasi ────────────────────────────────
+  Widget _buildIdleStep() {
+    return Column(
+      children: [
+        if (_s.errorMsg != null) ...[
+          _ErrorBox(msg: _s.errorMsg!),
+          const SizedBox(height: 20),
+        ],
+        FilledButton.icon(
+          onPressed: _s.loading ? null : _startTelegramLogin,
+          icon: _s.loading
+              ? const SizedBox(
+                  width: 18, height: 18,
+                  child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : const Icon(Icons.telegram, size: 22),
+          label: Text(_s.loading ? 'Yuklanmoqda...' : 'Telegram orqali kirish'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, 54),
+            backgroundColor: const Color(0xFF0088CC),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          ),
+        ),
+        const SizedBox(height: 32),
+        _buildHowItWorks(),
+      ],
+    );
+  }
+
+  // ── Waiting: ochilgan, polling ketmoqda ───────────────────────────────────
+  Widget _buildWaitingStep() {
+    final mins = _s.secondsLeft ~/ 60;
+    final secs = _s.secondsLeft % 60;
+    final timeStr = '$mins:${secs.toString().padLeft(2, '0')}';
+
+    return Column(
+      children: [
+        // Animated waiting indicator
+        const SizedBox(height: 8),
+        const _PulsingDot(),
+        const SizedBox(height: 16),
+        Text(
+          'Bot xabari kutilmoqda...',
+          style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          '⏱ $timeStr qoldi',
+          style: const TextStyle(
+              fontSize: 22, fontWeight: FontWeight.w700, color: AppTheme.primary),
+        ),
+        const SizedBox(height: 24),
+
+        // Re-open Telegram button
+        OutlinedButton.icon(
+          onPressed: () => _openTelegram(_s.deepLink),
+          icon: const Icon(Icons.open_in_new, size: 18),
+          label: const Text('Telegram ni qayta ochish'),
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 48),
+            side: const BorderSide(color: Color(0xFF0088CC), width: 1.5),
+            foregroundColor: const Color(0xFF0088CC),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        TextButton(
+          onPressed: _reset,
+          child: Text('Bekor qilish',
+              style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+        ),
+
+        const SizedBox(height: 24),
+        _buildSteps(),
+      ],
+    );
+  }
+
+  Widget _buildSteps() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: const [
+          Text('Qanday qilish kerak?',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+          SizedBox(height: 8),
+          _Step(n: '1', text: 'Telegram ilovasi ochildi → @HisobKitBot da xabar keladi'),
+          _Step(n: '2', text: '"✅ Tasdiqlash" tugmasini bosing'),
+          _Step(n: '3', text: 'Ilova avtomatik kiradi ✓'),
+        ],
+      ),
+    );
+  }
+
+  // ── Confirmed ─────────────────────────────────────────────────────────────
+  Widget _buildConfirmedStep() {
+    return Column(
+      children: [
+        const SizedBox(height: 16),
+        Container(
+          width: 80, height: 80,
+          decoration: BoxDecoration(
+            color: AppTheme.accent.withOpacity(0.12),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.check_circle, color: AppTheme.accent, size: 48),
+        ),
+        const SizedBox(height: 16),
+        const Text('Kirish tasdiqlandi!',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+        const SizedBox(height: 8),
+        Text('Bosh ekranga yo\'naltirilmoqda...',
+            style: TextStyle(color: Colors.grey.shade500)),
+        const SizedBox(height: 20),
+        const LinearProgressIndicator(),
+      ],
+    );
+  }
+
+  // ── Expired ───────────────────────────────────────────────────────────────
+  Widget _buildExpiredStep() {
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        Icon(Icons.timer_off, size: 56, color: Colors.grey.shade400),
+        const SizedBox(height: 12),
+        Text('Vaqt tugadi (5 daqiqa)',
+            style: TextStyle(color: Colors.grey.shade600)),
+        const SizedBox(height: 24),
+        FilledButton.icon(
+          onPressed: _reset,
+          icon: const Icon(Icons.refresh),
+          label: const Text('Qaytadan urinish'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+            backgroundColor: const Color(0xFF0088CC),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ── Error ─────────────────────────────────────────────────────────────────
+  Widget _buildErrorStep() {
+    return Column(
+      children: [
+        if (_s.errorMsg != null) _ErrorBox(msg: _s.errorMsg!),
+        const SizedBox(height: 20),
+        FilledButton.icon(
+          onPressed: _reset,
+          icon: const Icon(Icons.refresh),
+          label: const Text('Qaytadan urinish'),
+          style: FilledButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHowItWorks() {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: const [
+            Icon(Icons.info_outline, size: 16, color: Colors.grey),
+            SizedBox(width: 6),
+            Text('Qanday ishlaydi?',
+                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+          ]),
+          const SizedBox(height: 8),
+          const _Step(n: '1', text: 'Tugmani bosing → Telegram ilovasi ochiladi'),
+          const _Step(n: '2', text: '@HisobKitBot dan kirish so\'rovi keladi'),
+          const _Step(n: '3', text: '"✅ Tasdiqlash" ni bosing → Ilova o\'zi kiradi'),
+          const SizedBox(height: 8),
+          Text(
+            '⚠️ Ishlashi uchun avval ilovada Telegram ni bog\'langan bo\'lishi kerak\n'
+            '(Sozlamalar → Telegram bog\'lash)',
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Helper widgets ────────────────────────────────────────────────────────────
+
+class _ErrorBox extends StatelessWidget {
+  final String msg;
+  const _ErrorBox({required this.msg});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.red, size: 18),
+          const SizedBox(width: 8),
+          Expanded(
+              child: Text(msg,
+                  style: const TextStyle(color: Colors.red, fontSize: 13))),
+        ],
+      ),
+    );
+  }
+}
+
+class _Step extends StatelessWidget {
+  final String n;
+  final String text;
+  const _Step({required this.n, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 20, height: 20,
+            decoration: const BoxDecoration(
+                color: Color(0xFF0088CC), shape: BoxShape.circle),
+            child: Center(
+              child: Text(n,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(text, style: const TextStyle(fontSize: 13)),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PulsingDot extends StatefulWidget {
+  const _PulsingDot();
+
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _ctrl;
+  late Animation<double> _anim;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+        vsync: this, duration: const Duration(milliseconds: 900))
+      ..repeat(reverse: true);
+    _anim = Tween<double>(begin: 0.4, end: 1.0).animate(
+        CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut));
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _anim,
+      child: Container(
+        width: 16, height: 16,
+        decoration: const BoxDecoration(
+            color: Color(0xFF0088CC), shape: BoxShape.circle),
       ),
     );
   }

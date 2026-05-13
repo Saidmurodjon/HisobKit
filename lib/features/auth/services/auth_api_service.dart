@@ -209,29 +209,24 @@ class AuthApiService {
     } catch (_) {}
   }
 
-  // ── Telegram OTP ──────────────────────────────────────────────────────────
+  // ── Telegram ──────────────────────────────────────────────────────────────
 
-  /// Telegram bog'lash uchun deep-link olish
+  /// Telegram bog'lash uchun deep-link olish (autentifikatsiya kerak)
   Future<Map<String, dynamic>> telegramStart() =>
       _post('/auth/telegram/start', {});
 
-  /// Telegram orqali OTP yuborish
-  Future<Map<String, dynamic>> telegramSendOtp(String email) =>
-      _post('/auth/telegram/send-otp', {'email': email.trim().toLowerCase()});
+  /// Tap-to-confirm login: kod va deep-link olish (auth kerak emas)
+  Future<Map<String, dynamic>> telegramLoginStart() async {
+    final res = await _dio.get('/auth/telegram/login-start');
+    return res.data as Map<String, dynamic>;
+  }
 
-  /// Telegram OTP tasdiqlash
-  Future<Map<String, dynamic>> telegramVerifyOtp({
-    required String email,
-    required String otp,
-    String? displayName,
-    String? deviceName,
-  }) =>
-      _post('/auth/telegram/verify-otp', {
-        'email': email.trim().toLowerCase(),
-        'otp': otp,
-        if (displayName != null) 'displayName': displayName,
-        if (deviceName != null) 'deviceName': deviceName,
-      });
+  /// Telegram login tasdiqlandi? (polling — har 2 sekundda)
+  Future<Map<String, dynamic>> telegramCheckLogin(String code) async {
+    final res = await _dio.get('/auth/telegram/check',
+        queryParameters: {'code': code});
+    return res.data as Map<String, dynamic>;
+  }
 
   // ── Debt Requests ──────────────────────────────────────────────────────────
 

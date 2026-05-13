@@ -1,9 +1,7 @@
 import { Hono } from 'hono';
 import type { Env } from '../types/env.d.ts';
 import { authMiddleware } from '../middleware/auth.middleware.ts';
-import { generateOtp, saveOtp, verifyOtp } from '../services/otp.service.ts';
 import { createTokenPair } from '../services/jwt.service.ts';
-import { checkRateLimit } from '../middleware/rate-limit.ts';
 import { getSql } from '../db/neon.ts';
 
 const telegram = new Hono<{ Bindings: Env; Variables: { user: Record<string, unknown> } }>();
@@ -12,10 +10,13 @@ function uuid(): string {
   return crypto.randomUUID();
 }
 
-/**
- * Telegram Bot API orqali xabar yuborish
- */
-async function sendTelegramMessage(botToken: string, chatId: string, text: string): Promise<boolean> {
+// ─── Telegram Bot API helpers ─────────────────────────────────────────────────
+
+async function sendTelegramMessage(
+  botToken: string,
+  chatId: string,
+  text: string,
+): Promise<boolean> {
   try {
     const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: 'POST',
@@ -23,209 +24,365 @@ async function sendTelegramMessage(botToken: string, chatId: string, text: strin
       body: JSON.stringify({ chat_id: chatId, text, parse_mode: 'HTML' }),
     });
     const data = await res.json() as { ok: boolean };
-    return data.ok === true;
-  } catch (e) {
-    console.error('Telegram sendMessage error:', e);
-    return false;
-  }
+    return data.ok;
+  } catch { return false; }
 }
 
-// ── STEP 1: Start — foydalanuvchi Telegram ni bog'lashni boshlaydi ─────────────
-// POST /auth/telegram/start
-// Returns a deep-link URL that opens the bot with a "connect" code
-telegram.post('/start', authMiddleware, async (c) => {
-  const user = c.get('user') as Record<string, unknown>;
-  const userId = user['sub'] as string;
-
-  // Generate a one-time connect code (10 min TTL)
-  const connectCode = Math.random().toString(36).substring(2, 10).toUpperCase();
-  await c.env.AUTH_KV.put(`tg_connect:${connectCode}`, userId, { expirationTtl: 600 });
-
-  const botUsername = 'HisobKitBot';
-  return c.json({
-    connectUrl: `https://t.me/${botUsername}?start=${connectCode}`,
-    code: connectCode,
-    expiresIn: 600,
+async function sendInlineKeyboard(
+  botToken: string,
+  chatId: string,
+  text: string,
+  buttons: Array<Array<{ text: string; callback_data: string }>>,
+): Promise<void> {
+  await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      text,
+      parse_mode: 'HTML',
+      reply_markup: { inline_keyboard: buttons },
+    }),
   });
+}
+
+async function answerCallbackQuery(
+  botToken: string,
+  queryId: string,
+  text: string,
+): Promise<void> {
+  await fetch(`https://api.telegram.org/bot${botToken}/answerCallbackQuery`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ callback_query_id: queryId, text, show_alert: false }),
+  });
+}
+
+async function editMessageText(
+  botToken: string,
+  chatId: string,
+  messageId: number,
+  text: string,
+): Promise<void> {
+  await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      parse_mode: 'HTML',
+    }),
+  });
+}
+
+// ─── STEP 1: Login start (no auth) ───────────────────────────────────────────
+// GET /auth/telegram/login-start
+// Returns { code, deepLink, expiresIn }
+telegram.get('/login-start', async (c) => {
+  const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+  const code = `login_${randomPart}`;
+  await c.env.AUTH_KV.put(`tg_login:${code}`, 'pending', { expirationTtl: 300 });
+
+  const deepLink = `https://t.me/HisobKitBot?start=${code}`;
+  return c.json({ code, deepLink, expiresIn: 300 });
 });
 
-// ── BOT WEBHOOK: /start <code> command handler ────────────────────────────────
-// POST /auth/telegram/webhook  (called by Telegram)
+// ─── STEP 2: Polling — check if confirmed ────────────────────────────────────
+// GET /auth/telegram/check?code=login_XXXX
+telegram.get('/check', async (c) => {
+  const code = c.req.query('code') ?? '';
+  if (!code.startsWith('login_')) return c.json({ status: 'invalid' }, 400);
+
+  // Check if result is ready
+  const result = await c.env.AUTH_KV.get(`tg_login_result:${code}`);
+  if (result) {
+    await c.env.AUTH_KV.delete(`tg_login_result:${code}`);
+    return c.json({ status: 'confirmed', ...JSON.parse(result) });
+  }
+
+  // Check if still pending
+  const pending = await c.env.AUTH_KV.get(`tg_login:${code}`);
+  if (!pending) return c.json({ status: 'expired' });
+
+  return c.json({ status: 'pending' });
+});
+
+// ─── BOT WEBHOOK ──────────────────────────────────────────────────────────────
+// POST /auth/telegram/webhook  (called by Telegram servers)
 telegram.post('/webhook', async (c) => {
-  let body: { message?: { chat?: { id?: number; username?: string }; text?: string } };
-  try {
-    body = await c.req.json();
-  } catch {
+  let body: {
+    message?: {
+      message_id?: number;
+      chat?: { id?: number; username?: string };
+      text?: string;
+    };
+    callback_query?: {
+      id: string;
+      data?: string;
+      message?: { message_id?: number; chat?: { id?: number } };
+      from?: { id?: number; username?: string; first_name?: string };
+    };
+  };
+
+  try { body = await c.req.json(); }
+  catch { return c.json({ ok: true }); }
+
+  // ── callback_query: user tapped an inline button ──────────────────────────
+  if (body.callback_query) {
+    const query = body.callback_query;
+    const chatId = String(query.message?.chat?.id ?? query.from?.id ?? '');
+    const callbackData = query.data ?? '';
+    const queryId = query.id;
+    const messageId = query.message?.message_id ?? 0;
+
+    if (callbackData.startsWith('login:')) {
+      const code = callbackData.slice(6);
+
+      // Verify still pending
+      const pending = await c.env.AUTH_KV.get(`tg_login:${code}`);
+      if (!pending) {
+        await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, 'Kod muddati o\'tgan');
+        return c.json({ ok: true });
+      }
+
+      // Look up user by telegram_chat_id in Neon
+      const sql = getSql(c.env.NEON_DATABASE_URL);
+      let userId: string | null = null;
+      let displayName: string = '';
+      let email: string | null = null;
+
+      try {
+        const rows = await sql`
+          SELECT user_id, display_name, email
+          FROM user_profiles
+          WHERE telegram_chat_id = ${chatId}
+          LIMIT 1
+        `;
+        if (rows.length > 0) {
+          userId = String(rows[0]['user_id']);
+          displayName = String(rows[0]['display_name'] ?? '');
+          email = rows[0]['email'] as string | null;
+        }
+      } catch (e) {
+        console.error('Neon lookup in callback:', e);
+        await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, 'Server xatosi');
+        return c.json({ ok: true });
+      }
+
+      if (!userId) {
+        await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId,
+          'Hisobingiz bog\'lanmagan. Ilovada "Telegram bog\'lash" ni bajaring.');
+        return c.json({ ok: true });
+      }
+
+      // Get user from D1 for email fallback
+      const d1User = await c.env.DB.prepare('SELECT * FROM users WHERE id = ?').bind(userId)
+        .first<{ id: string; email: string; display_name: string | null; avatar_url: string | null; created_at: number }>();
+
+      const finalEmail = email || d1User?.email || '';
+
+      // Create JWT token pair
+      const deviceId = uuid();
+      try {
+        await c.env.DB.prepare(
+          `INSERT INTO user_devices (id, user_id, device_name, platform, last_active) VALUES (?, ?, ?, 'android', ?)`,
+        ).bind(deviceId, userId, 'Telegram Login', Math.floor(Date.now() / 1000)).run();
+      } catch { /* table may not have this row yet */ }
+
+      const { accessToken, refreshToken } = await createTokenPair(
+        userId, finalEmail, deviceId, c.env.AUTH_KV, c.env.JWT_SECRET,
+        parseInt(c.env.ACCESS_TOKEN_TTL), parseInt(c.env.REFRESH_TOKEN_TTL),
+      );
+
+      // Store result for app to pick up (60s TTL — app polls every 2s)
+      await c.env.AUTH_KV.put(`tg_login_result:${code}`, JSON.stringify({
+        accessToken,
+        refreshToken,
+        user: {
+          id: userId,
+          displayName: displayName || d1User?.display_name || '',
+          email: finalEmail,
+          avatarUrl: d1User?.avatar_url ?? null,
+          providers: ['telegram'],
+          createdAt: d1User?.created_at ?? Math.floor(Date.now() / 1000),
+        },
+      }), { expirationTtl: 60 });
+
+      // Delete pending key
+      await c.env.AUTH_KV.delete(`tg_login:${code}`);
+
+      // Answer callback + update message
+      await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, '✅ Kirish tasdiqlandi!');
+      if (messageId) {
+        await editMessageText(
+          c.env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          `✅ <b>HisobKit</b>ga muvaffaqiyatli kirdingiz!\n\nIlovaga qayting — kirish avtomatik amalga oshadi.`,
+        );
+      }
+    } else if (callbackData.startsWith('cancel:')) {
+      const code = callbackData.slice(7);
+      await c.env.AUTH_KV.delete(`tg_login:${code}`);
+      await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, 'Bekor qilindi');
+      if (messageId) {
+        await editMessageText(
+          c.env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          '❌ Kirish bekor qilindi. Agar siz bo\'lsangiz, ilovadan qaytadan urinib ko\'ring.',
+        );
+      }
+    } else if (callbackData.startsWith('link:')) {
+      // Telegram account linking (existing user)
+      const connectCode = callbackData.slice(5);
+      const storedUserId = await c.env.AUTH_KV.get(`tg_connect:${connectCode}`);
+      if (!storedUserId) {
+        await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, 'Kod muddati o\'tgan');
+        return c.json({ ok: true });
+      }
+
+      const username = String(query.from?.username ?? '');
+      const sql = getSql(c.env.NEON_DATABASE_URL);
+      try {
+        await sql`
+          UPDATE user_profiles
+          SET telegram_chat_id  = ${chatId},
+              telegram_username = ${username || null}
+          WHERE user_id = ${storedUserId}
+        `;
+      } catch (e) {
+        console.error('Link update error:', e);
+        await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, 'Xato yuz berdi');
+        return c.json({ ok: true });
+      }
+      await c.env.AUTH_KV.delete(`tg_connect:${connectCode}`);
+      await answerCallbackQuery(c.env.TELEGRAM_BOT_TOKEN, queryId, '✅ Muvaffaqiyatli bog\'landi!');
+      if (messageId) {
+        await editMessageText(
+          c.env.TELEGRAM_BOT_TOKEN, chatId, messageId,
+          '✅ Telegram muvaffaqiyatli bog\'landi! Endi siz Telegram orqali kirishingiz mumkin.',
+        );
+      }
+    }
+
     return c.json({ ok: true });
   }
 
+  // ── message: /start command ───────────────────────────────────────────────
   const message = body.message;
   if (!message) return c.json({ ok: true });
 
   const chatId = String(message.chat?.id ?? '');
-  const username = message.chat?.username ?? '';
+  const username = String(message.chat?.username ?? '');
   const text = (message.text ?? '').trim();
 
-  if (text.startsWith('/start ')) {
-    const connectCode = text.split(' ')[1]?.trim() ?? '';
-    const userId = await c.env.AUTH_KV.get(`tg_connect:${connectCode}`);
-    if (!userId) {
+  if (!text.startsWith('/start')) {
+    return c.json({ ok: true });
+  }
+
+  const param = text.split(' ')[1]?.trim() ?? '';
+
+  // ── Case 1: LOGIN flow — /start login_XXXX ──────────────────────────────
+  if (param.startsWith('login_')) {
+    const code = param;
+    const pending = await c.env.AUTH_KV.get(`tg_login:${code}`);
+    if (!pending) {
       await sendTelegramMessage(c.env.TELEGRAM_BOT_TOKEN, chatId,
-        '❌ Kod noto\'g\'ri yoki muddati o\'tgan. HisobKit ilovasidan qaytadan urinib ko\'ring.');
+        '❌ Kirish kodi muddati o\'tgan yoki noto\'g\'ri.\n\nIlovadan qaytadan urinib ko\'ring.');
       return c.json({ ok: true });
     }
 
-    // Save chat_id to Neon user_profiles
+    // Check if this Telegram chat_id is linked to any HisobKit account
     const sql = getSql(c.env.NEON_DATABASE_URL);
+    let displayName = 'Foydalanuvchi';
+    let isLinked = false;
+
     try {
-      await sql`
-        UPDATE user_profiles
-        SET telegram_chat_id  = ${chatId},
-            telegram_username = ${username || null}
-        WHERE user_id = ${userId}
+      const rows = await sql`
+        SELECT user_id, display_name FROM user_profiles
+        WHERE telegram_chat_id = ${chatId}
+        LIMIT 1
       `;
+      if (rows.length > 0) {
+        isLinked = true;
+        displayName = String(rows[0]['display_name'] || 'Foydalanuvchi');
+      }
     } catch (e) {
-      console.error('Telegram link update error:', e);
+      console.error('Neon check in /start login:', e);
     }
 
-    // Remove connect code
-    await c.env.AUTH_KV.delete(`tg_connect:${connectCode}`);
+    if (!isLinked) {
+      await sendTelegramMessage(c.env.TELEGRAM_BOT_TOKEN, chatId,
+        '❌ Bu Telegram hisobi HisobKit ga bog\'lanmagan.\n\n'
+        + 'Kirish uchun:\n'
+        + '1. HisobKit ilovasida email orqali kiring\n'
+        + '2. Sozlamalar → Telegram bog\'lash\n'
+        + '3. Keyin Telegram orqali kirishni ishlating');
+      return c.json({ ok: true });
+    }
 
-    await sendTelegramMessage(c.env.TELEGRAM_BOT_TOKEN, chatId,
-      '✅ <b>HisobKit</b> hisobingiz Telegram ga muvaffaqiyatli bog\'landi!\n\nEndi kirish kodlarini Telegram orqali olasiz.');
-  } else if (text === '/start') {
-    await sendTelegramMessage(c.env.TELEGRAM_BOT_TOKEN, chatId,
-      '👋 Salom! Bu <b>HisobKit</b> bot.\n\nHisobingizni bog\'lash uchun HisobKit ilovasidagi "Telegram orqali kirish" tugmasini bosing.');
+    // Send confirmation keyboard
+    await sendInlineKeyboard(
+      c.env.TELEGRAM_BOT_TOKEN,
+      chatId,
+      `🔐 <b>HisobKit — Kirish so'rovi</b>\n\n`
+      + `Salom, <b>${displayName}</b>!\n\n`
+      + `Hisobingizga kirish so'rovi keldi.\n\n`
+      + `Bu siz bo'lsangiz — <b>Tasdiqlash</b> tugmasini bosing.\n`
+      + `⚠️ Agar siz kirish so'ramagan bo'lsangiz — <b>Bekor qilish</b>ni bosing.`,
+      [
+        [{ text: '✅ Tasdiqlash', callback_data: `login:${code}` }],
+        [{ text: '❌ Bekor qilish', callback_data: `cancel:${code}` }],
+      ],
+    );
+    return c.json({ ok: true });
   }
+
+  // ── Case 2: LINK flow — /start CONNECT_CODE ─────────────────────────────
+  if (param.length > 0) {
+    const connectCode = param;
+    const storedUserId = await c.env.AUTH_KV.get(`tg_connect:${connectCode}`);
+    if (!storedUserId) {
+      await sendTelegramMessage(c.env.TELEGRAM_BOT_TOKEN, chatId,
+        '❌ Bog\'lash kodi muddati o\'tgan.\n\nIlovadan qaytadan urinib ko\'ring.');
+      return c.json({ ok: true });
+    }
+
+    // Ask for confirmation before linking
+    await sendInlineKeyboard(
+      c.env.TELEGRAM_BOT_TOKEN,
+      chatId,
+      '🔗 <b>HisobKit — Telegram bog\'lash</b>\n\n'
+      + 'Bu Telegram hisobingizni HisobKit ga bog\'lamoqchi.\n\n'
+      + 'Tasdiqlaysizmi?',
+      [
+        [{ text: '✅ Ha, bog\'lash', callback_data: `link:${connectCode}` }],
+        [{ text: '❌ Yo\'q', callback_data: `cancel:x` }],
+      ],
+    );
+    return c.json({ ok: true });
+  }
+
+  // ── Case 3: Plain /start ─────────────────────────────────────────────────
+  await sendTelegramMessage(c.env.TELEGRAM_BOT_TOKEN, chatId,
+    '👋 Salom! Bu <b>HisobKit</b> bot.\n\n'
+    + '📱 Kirish uchun HisobKit ilovasida "Telegram orqali kirish" tugmasini bosing.\n\n'
+    + '🔗 Telegram ni bog\'lash uchun: Sozlamalar → Telegram bog\'lash.');
 
   return c.json({ ok: true });
 });
 
-// ── STEP 2: Send OTP via Telegram ─────────────────────────────────────────────
-// POST /auth/telegram/send-otp  { userId? }
-// Also usable without auth (for login flow) — pass email instead
-telegram.post('/send-otp', async (c) => {
-  const ip = c.req.header('CF-Connecting-IP') ?? 'unknown';
-  const rl = await checkRateLimit(`tg_otp_ip:${ip}`, 5, 3600, c.env.AUTH_KV);
-  if (!rl.allowed) return c.json({ error: 'Juda ko\'p urinish' }, 429);
+// ─── Telegram linking start (authenticated user) ──────────────────────────────
+// POST /auth/telegram/start  (requires JWT)
+telegram.post('/start', authMiddleware, async (c) => {
+  const user = c.get('user') as Record<string, unknown>;
+  const userId = user['sub'] as string;
 
-  const { email } = await c.req.json<{ email: string }>();
-  if (!email) return c.json({ error: 'Email taqdim etilmagan' }, 400);
-
-  const emailRl = await checkRateLimit(`tg_otp_email:${email}`, 1, 60, c.env.AUTH_KV);
-  if (!emailRl.allowed) return c.json({ error: 'Biroz kuting (1 daqiqa)' }, 429);
-
-  // Find telegram_chat_id from Neon
-  const sql = getSql(c.env.NEON_DATABASE_URL);
-  let chatId: string | null = null;
-  try {
-    const rows = await sql`
-      SELECT telegram_chat_id FROM user_profiles WHERE LOWER(email) = ${email.toLowerCase()}
-      LIMIT 1
-    `;
-    chatId = rows[0]?.['telegram_chat_id'] as string | null ?? null;
-  } catch (e) {
-    console.error('Neon lookup error:', e);
-    return c.json({ error: 'Server xatosi' }, 500);
-  }
-
-  if (!chatId) {
-    return c.json({
-      error: 'Bu email uchun Telegram bog\'lanmagan',
-      code: 'telegram_not_linked',
-    }, 404);
-  }
-
-  const otp = generateOtp();
-  const ttl = parseInt(c.env.OTP_TTL);
-  await saveOtp(`tg:${email}`, otp, c.env.AUTH_KV, ttl);
-
-  const sent = await sendTelegramMessage(
-    c.env.TELEGRAM_BOT_TOKEN,
-    chatId,
-    `🔐 <b>HisobKit kirish kodi</b>\n\nKodingiz: <code>${otp}</code>\n\nAmal qilish muddati: ${ttl / 60} daqiqa.\n\n⚠️ Bu kodni hech kimga bermang.`,
-  );
-
-  if (!sent) {
-    return c.json({ error: 'Telegram xabar yuborishda xato' }, 502);
-  }
-
-  return c.json({ success: true, expiresIn: ttl });
-});
-
-// ── STEP 3: Verify Telegram OTP ───────────────────────────────────────────────
-telegram.post('/verify-otp', async (c) => {
-  const { email, otp, displayName, deviceName } = await c.req.json<{
-    email: string;
-    otp: string;
-    displayName?: string;
-    deviceName?: string;
-  }>();
-
-  if (!email || !otp) return c.json({ error: 'email va otp shart' }, 400);
-
-  const maxAttempts = parseInt(c.env.OTP_MAX_ATTEMPTS);
-  const result = await verifyOtp(`tg:${email.toLowerCase()}`, otp, c.env.AUTH_KV, maxAttempts);
-  if (!result.success) {
-    const messages: Record<string, string> = {
-      expired: 'Kod muddati o\'tdi.',
-      blocked: 'Juda ko\'p urinish. 30 daqiqa kuting.',
-      invalid: 'Noto\'g\'ri kod.',
-    };
-    return c.json({
-      error: messages[result.reason] ?? 'Xato',
-      code: result.reason,
-      attemptsLeft: result.attemptsLeft,
-    }, 400);
-  }
-
-  // Find or create user in D1
-  let user = await c.env.DB.prepare(
-    'SELECT * FROM users WHERE email = ?',
-  ).bind(email.toLowerCase()).first<{ id: string; email: string; display_name: string | null; avatar_url: string | null; created_at: number }>();
-
-  const isNewUser = !user;
-  const now = Math.floor(Date.now() / 1000);
-
-  if (!user) {
-    if (!displayName) {
-      await c.env.AUTH_KV.put(`pre_verified:${email.toLowerCase()}`, '1', { expirationTtl: 600 });
-      return c.json({ error: 'Ism kiritilmagan', code: 'needs_profile', isNewUser: true }, 400);
-    }
-    const userId = uuid();
-    await c.env.DB.prepare(
-      `INSERT INTO users (id, email, display_name, last_seen_at) VALUES (?, ?, ?, ?)`,
-    ).bind(userId, email.toLowerCase(), displayName, now).run();
-    await c.env.DB.prepare(
-      `INSERT INTO user_auth_providers (id, user_id, provider, provider_id) VALUES (?, ?, 'telegram', ?)`,
-    ).bind(uuid(), userId, email.toLowerCase()).run();
-    user = { id: userId, email: email.toLowerCase(), display_name: displayName, avatar_url: null, created_at: now };
-  } else {
-    await c.env.DB.prepare('UPDATE users SET last_seen_at = ? WHERE id = ?').bind(now, user.id).run();
-  }
-
-  const deviceId = uuid();
-  await c.env.DB.prepare(
-    `INSERT INTO user_devices (id, user_id, device_name, platform, last_active) VALUES (?, ?, ?, 'android', ?)`,
-  ).bind(deviceId, user.id, deviceName ?? 'Unknown', now).run();
-
-  const { accessToken, refreshToken } = await createTokenPair(
-    user.id, user.email, deviceId, c.env.AUTH_KV, c.env.JWT_SECRET,
-    parseInt(c.env.ACCESS_TOKEN_TTL), parseInt(c.env.REFRESH_TOKEN_TTL),
-  );
+  const connectCode = Math.random().toString(36).substring(2, 10).toUpperCase();
+  await c.env.AUTH_KV.put(`tg_connect:${connectCode}`, userId, { expirationTtl: 600 });
 
   return c.json({
-    accessToken,
-    refreshToken,
-    isNewUser,
-    user: {
-      id: user.id,
-      displayName: user.display_name,
-      email: user.email,
-      avatarUrl: user.avatar_url,
-      providers: ['telegram'],
-      createdAt: user.created_at,
-    },
+    connectUrl: `https://t.me/HisobKitBot?start=${connectCode}`,
+    code: connectCode,
+    expiresIn: 600,
   });
 });
 
